@@ -3,37 +3,348 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CardTrack Shop — Offline Pokémon retail OS</title>
+  <meta name="description" content="CardTrack Shop — counter-first offline Pokémon retail OS. Buylist, store credit, sealed breaks, slabs, market comps. $59 one-time." />
+  <title>CardTrack Shop — Offline Pokémon Shop OS</title>
   <style>
-    :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
-    body { max-width: 42rem; margin: 2rem auto; padding: 0 1.25rem; line-height: 1.5; }
-    h1 { font-size: 1.75rem; margin-bottom: 0.25rem; }
-    .price { font-size: 1.25rem; font-weight: 600; }
-    .muted { opacity: 0.75; }
-    ul { padding-left: 1.2rem; }
-    .buy {
-      display: inline-block; margin-top: 1.25rem; padding: 0.85rem 1.25rem;
-      background: #635bff; color: #fff; text-decoration: none; border-radius: 8px;
-      font-weight: 600;
+    :root {
+      color-scheme: light dark;
+      --bg: #0f1115;
+      --bg-elev: #171a21;
+      --text: #e8eaed;
+      --muted: #9aa3b2;
+      --line: #2a3140;
+      --accent: #635bff;
+      --accent-hover: #7a73ff;
+      --ok: #3dd68c;
+      --warn: #f5a524;
+      --warn-bg: rgba(245, 165, 36, 0.12);
+      --card: #1c212b;
+      --radius: 12px;
+      --max: 40rem;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     }
-    .note { margin-top: 1.5rem; font-size: 0.9rem; }
-    .pill { display:inline-block; font-size:0.75rem; padding:0.15rem 0.5rem; border-radius:999px; border:1px solid currentColor; opacity:0.85; margin-bottom:0.75rem; }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f6f7f9;
+        --bg-elev: #fff;
+        --text: #12141a;
+        --muted: #5c6573;
+        --line: #d8dde6;
+        --card: #fff;
+        --warn-bg: rgba(245, 165, 36, 0.15);
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      font-size: 1rem;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent); }
+    .wrap {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 1.25rem 1.15rem 3rem;
+    }
+    header {
+      padding: 0.5rem 0 1.25rem;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 1.5rem;
+    }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 0.85rem;
+    }
+    .pill {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      background: var(--bg-elev);
+    }
+    .pill.test {
+      color: var(--warn);
+      border-color: var(--warn);
+      background: var(--warn-bg);
+    }
+    h1 {
+      font-size: clamp(1.65rem, 5vw, 2.05rem);
+      line-height: 1.15;
+      margin: 0 0 0.5rem;
+      letter-spacing: -0.02em;
+    }
+    .lede {
+      margin: 0 0 1rem;
+      font-size: 1.05rem;
+      color: var(--muted);
+      max-width: 34rem;
+    }
+    .price-block {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.5rem 0.85rem;
+      margin-bottom: 1.15rem;
+    }
+    .price {
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .price span { font-weight: 500; color: var(--muted); font-size: 0.95rem; }
+    .buy {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      margin: 0.25rem 0 0.5rem;
+      padding: 0.9rem 1.35rem;
+      background: var(--accent);
+      color: #fff !important;
+      text-decoration: none;
+      border-radius: 10px;
+      font-weight: 650;
+      font-size: 1.05rem;
+      border: none;
+      min-height: 48px;
+      transition: background 0.15s ease;
+    }
+    .buy:hover, .buy:focus-visible { background: var(--accent-hover); outline: none; }
+    .buy-note {
+      margin: 0 0 0.75rem;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+    .test-banner {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 0.75rem;
+      align-items: center;
+      padding: 0.7rem 0.85rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--warn);
+      background: var(--warn-bg);
+      font-size: 0.88rem;
+      margin: 0.75rem 0 1.5rem;
+    }
+    .test-banner strong { color: var(--warn); }
+    .test-banner code {
+      font-size: 0.82rem;
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+      background: var(--bg-elev);
+      border: 1px solid var(--line);
+    }
+    h2 {
+      font-size: 1.05rem;
+      margin: 1.75rem 0 0.75rem;
+      letter-spacing: -0.01em;
+    }
+    .features {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 0.55rem;
+    }
+    .features li {
+      padding: 0.75rem 0.85rem;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      font-size: 0.95rem;
+    }
+    .features strong { font-weight: 650; }
+    .features .hint { display: block; color: var(--muted); font-size: 0.85rem; margin-top: 0.15rem; }
+    .demo {
+      margin: 1rem 0 0;
+      padding: 0.85rem 0.9rem;
+      background: var(--bg-elev);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.78rem;
+      line-height: 1.65;
+      color: var(--muted);
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .demo .hi { color: var(--ok); font-weight: 600; }
+    .demo .dim { opacity: 0.7; }
+    .steps {
+      counter-reset: step;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 0.65rem;
+    }
+    .steps li {
+      position: relative;
+      padding: 0.75rem 0.85rem 0.75rem 2.75rem;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      font-size: 0.95rem;
+    }
+    .steps li::before {
+      counter-increment: step;
+      content: counter(step);
+      position: absolute;
+      left: 0.75rem;
+      top: 0.75rem;
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .trust {
+      display: grid;
+      gap: 0.55rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .trust li {
+      padding: 0.65rem 0.85rem;
+      border-left: 3px solid var(--ok);
+      background: var(--card);
+      border-radius: 0 8px 8px 0;
+      border-top: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      font-size: 0.92rem;
+    }
+    .cta-footer {
+      margin-top: 2rem;
+      padding: 1.25rem 1rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--bg-elev);
+      text-align: center;
+    }
+    .cta-footer p { margin: 0 0 0.85rem; color: var(--muted); font-size: 0.95rem; }
+    .muted { color: var(--muted); }
+    .fine {
+      margin-top: 1.25rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    footer {
+      margin-top: 2.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.88em; }
   </style>
 </head>
 <body>
-  <p class="pill">Shop OS · offline · zero install</p>
-  <h1>CardTrack Shop</h1>
-  <p class="muted">The counter-first Pokémon retail OS that works when the wifi doesn’t.</p>
-  <p class="price">$59 one-time · Shop License</p>
-  <ul>
-    <li>Buylist / trade-in with condition rates and store credit</li>
-    <li>Sealed ETB &amp; box breaks with honest cost allocation</li>
-    <li>PSA / BGS / CGC slabs + cert numbers</li>
-    <li>Show mode, profit / COGS / dead-stock reports</li>
-    <li>One-tap backup · data stays on the phone</li>
-  </ul>
-  <a class="buy" href="https://buy.stripe.com/test_fZudR91570rVbmng12eAg00">Buy Shop License — $59</a>
-  <p class="note muted">After payment you get a private zip. Open <code>index.html</code> on your phone. No SaaS bill. No account inside the app.</p>
-  <p class="note muted">Test mode checkout — use card <code>4242 4242 4242 4242</code>.</p>
+  <div class="wrap">
+    <header>
+      <div class="row">
+        <span class="pill">Shop OS · offline · zero install</span>
+        <span class="pill test">Test checkout</span>
+      </div>
+      <h1>CardTrack Shop</h1>
+      <p class="lede">Counter-first offline Pokémon Shop OS. Buy-ins, sealed breaks, slabs, comps, and reports — on your phone, even when the wifi dies.</p>
+      <div class="price-block">
+        <p class="price">$59 <span>one-time · Shop License</span></p>
+      </div>
+      <a class="buy" href="https://buy.stripe.com/test_fZudR91570rVbmng12eAg00">Buy Shop License — $59</a>
+      <p class="buy-note">Private zip by email after payment. One commercial shop / one operator.</p>
+      <div class="test-banner" role="status">
+        <strong>Stripe TEST mode</strong>
+        <span>No live charges yet. Use card <code>4242 4242 4242 4242</code>, any future expiry, any CVC.</span>
+      </div>
+    </header>
+
+    <h2>What you get today</h2>
+    <ul class="features">
+      <li>
+        <strong>Buylist + store credit</strong>
+        <span class="hint">Condition rates, cash vs credit quotes, on-device customer ledger, printable receipts.</span>
+      </li>
+      <li>
+        <strong>Sealed breaks</strong>
+        <span class="hint">ETB, booster box, tin &amp; more — keep sealed or break with honest cost allocation.</span>
+      </li>
+      <li>
+        <strong>Graded slabs</strong>
+        <span class="hint">PSA / BGS / CGC with grade + cert #; filter raw / graded / sealed.</span>
+      </li>
+      <li>
+        <strong>Show mode</strong>
+        <span class="hint">Big taps, SKU-fast sale, offline banner, backup reminder for the floor.</span>
+      </li>
+      <li>
+        <strong>Reports</strong>
+        <span class="hint">Revenue, COGS, margin, velocity, dead stock, restock alerts; CSV for books.</span>
+      </li>
+      <li>
+        <strong>Barcode / SKU</strong>
+        <span class="hint">SKU on stock lines; camera BarcodeDetector when available, typed lookup otherwise.</span>
+      </li>
+      <li>
+        <strong>Market comps</strong>
+        <span class="hint">Online / cached / imported price guide on Sale &amp; Buy-in; Use market / Use mid — never blocks the counter.</span>
+      </li>
+      <li>
+        <strong>JSON backup</strong>
+        <span class="hint">One-tap export of sales, stock, buylist, credit, settings, watchlist &amp; comps. Double-confirm restore.</span>
+      </li>
+    </ul>
+
+    <pre class="demo" aria-label="Demo strip: sale with market comps"><span class="dim">Sale → Charizard ex · NM</span>
+<span class="hi">comps</span>  market $42.10  mid $38  <span class="dim">[Cached]</span>
+        → <span class="hi">Use market</span> → log sale → receipt</pre>
+
+    <h2>How it works</h2>
+    <ol class="steps">
+      <li><strong>Pay</strong> once for the Shop License (test checkout above while we finish go-live).</li>
+      <li><strong>Get the zip</strong> by email — private download, not a public repo clone.</li>
+      <li><strong>Open <code>index.html</code></strong> in Safari or Chrome on your phone.</li>
+      <li><strong>Add to Home Screen</strong> for an app-like icon. Work offline. Backup often.</li>
+    </ol>
+
+    <h2>Trust</h2>
+    <ul class="trust">
+      <li><strong>Data stays on the device</strong> — localStorage on that phone/browser. No CardTrack cloud inventory.</li>
+      <li><strong>No SaaS login inside the app</strong> — open the file and sell. No account gate for core retail.</li>
+      <li><strong>One-time license</strong> — $59 for one shop / one operator. Your downloaded file keeps working.</li>
+    </ul>
+
+    <div class="cta-footer">
+      <p>Stop losing margin in spreadsheets that don’t travel to shows.</p>
+      <a class="buy" href="https://buy.stripe.com/test_fZudR91570rVbmng12eAg00">Buy Shop License — $59</a>
+      <p class="fine muted">Stripe is in <strong>TEST mode</strong> — use <code>4242…</code>. Live checkout is not enabled yet.</p>
+    </div>
+
+    <p class="fine muted">Updates &amp; Support ($12/mo) — priority email help and newer retail builds — is coming. Not required for the Shop License; no link yet.</p>
+
+    <footer>
+      CardTrack Shop · public buy page · app source stays private<br />
+      Not affiliated with Nintendo, The Pokémon Company, or PSA / BGS / CGC.
+    </footer>
+  </div>
 </body>
 </html>
