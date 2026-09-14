@@ -1,0 +1,63 @@
+[
+  {
+    "dest": "app/index.html",
+    "parts": [
+      "index.html.p000",
+      "index.html.p001",
+      "index.html.p002",
+      "index.html.p003",
+      "index.html.p004",
+      "index.html.p005",
+      "index.html.p006"
+    ],
+    "chars": 119872
+  },
+  {
+    "dest": "app/assets/app.css",
+    "parts": [
+      "assets__app.css.p000",
+      "assets__app.css.p001",
+      "assets__app.css.p002",
+      "assets__app.css.p003",
+      "assets__app.css.p004",
+      "assets__app.css.p005",
+      "assets__app.css.p006",
+      "assets__app.css.p007"
+    ],
+    "chars": 126673
+  },
+  {
+    "dest": "app/assets/app.js",
+    "parts": [
+      "assets__app.js.p000",
+      "assets__app.js.p001",
+      "assets__app.js.p002",
+      "assets__app.js.p003",
+      "assets__app.js.p004",
+      "assets__app.js.p005",
+      "assets__app.js.p006",
+      "assets__app.js.p007",
+      "assets__app.js.p008",
+      "assets__app.js.p009",
+      "assets__app.js.p010",
+      "assets__app.js.p011",
+      "assets__app.js.p012",
+      "assets__app.js.p013",
+      "assets__app.js.p014",
+      "assets__app.js.p015",
+      "assets__app.js.p016",
+      "assets__app.js.p017",
+      "assets__app.js.p018",
+      "assets__app.js.p019",
+      "assets__app.js.p020",
+      "assets__app.js.p021",
+      "assets__app.js.p022",
+      "assets__app.js.p023",
+      "assets__app.js.p024",
+      "assets__app.js.p025",
+      "assets__app.js.p026",
+      "assets__app.js.p027"
+    ],
+    "chars": 497832
+  }
+]

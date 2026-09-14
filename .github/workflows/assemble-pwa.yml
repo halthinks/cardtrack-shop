@@ -1,0 +1,42 @@
+name: Assemble PWA
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'app/_src/**'
+      - '.github/workflows/assemble-pwa.yml'
+permissions:
+  contents: write
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Concatenate chunks into app/
+        run: |
+          set -euo pipefail
+          python3 << 'PY'
+          from pathlib import Path
+          import json
+          src = Path('app/_src')
+          man = json.loads((src/'manifest.json').read_text())
+          for item in man:
+              dest = Path(item['dest'])
+              dest.parent.mkdir(parents=True, exist_ok=True)
+              data = ''.join((src/p).read_text() for p in item['parts'])
+              dest.write_text(data)
+              print(dest, len(data), 'ok' if len(data)==item['chars'] else f"FAIL want {item['chars']}")
+              if len(data) != item['chars']:
+                  raise SystemExit(1)
+          PY
+      - name: Commit assembled assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/index.html app/assets/app.css app/assets/app.js
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Assemble CardTrack PWA assets from app/_src chunks"
+            git push
+          fi
