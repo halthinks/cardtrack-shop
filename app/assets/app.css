@@ -2771,8 +2771,11 @@ html[data-grid-size="L"] { --qk-art-h: 160px; }
               linear-gradient(180deg, var(--bg), color-mix(in srgb, var(--bg) 88%, #000));
 }
 #ct-onboard.show { display: flex; }
-body.onboarding #ent-app { visibility: hidden; pointer-events: none; }
-body.onboarding #ct-onboard { display: flex; }
+/* Only block the app while the onboard overlay is actually shown.
+   body.onboarding alone must NOT kill pointer-events (PWA split / partial boot). */
+#ct-onboard.show ~ #ent-app { visibility: hidden; pointer-events: none; }
+body.onboarding #ct-onboard.show { display: flex; }
+#ct-onboard.show { display: flex; }
 .ob-card {
   width: min(440px, 100%); max-height: 100%; overflow: auto;
   background: var(--surface); border: 1px solid var(--border);
@@ -2883,11 +2886,14 @@ body.home-active .reg-status-chip { display: none; }
 .settings-nav {
   display: flex; gap: 6px; overflow-x: auto; padding: 10px 12px; border-bottom: 1px solid var(--border);
   background: var(--surface); scrollbar-width: none; position: sticky; top: 0; z-index: 5;
+  -webkit-overflow-scrolling: touch; scroll-padding-inline: 16px; overscroll-behavior-x: contain;
 }
 .settings-nav::-webkit-scrollbar { display: none; }
+.settings-nav::after { content: ''; flex: 0 0 16px; }
 .settings-nav-item {
   flex: 0 0 auto; border: 1px solid var(--border); background: var(--surface2); color: var(--muted);
   border-radius: 999px; padding: 7px 12px; font-size: 12px; font-weight: 650; cursor: pointer; font-family: inherit;
+  white-space: nowrap;
 }
 .settings-nav-item.active, .settings-nav-item:hover {
   border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
@@ -2973,6 +2979,10 @@ body.home-active .reg-status-chip { display: none; }
   .ent-main, .section, .header, .home-quick, .smart-grid-wrap { max-width: 100vw; }
   .header-actions { gap: 4px !important; }
   .header-actions .hdr-btn[onclick*="backupJSON"] { display: inline-flex !important; min-width: 44px; min-height: 44px; }
+  /* Lock is available under Settings → Security; hide empty/crowded header lock on phones */
+  .header-actions .hdr-btn[onclick*="ctLockRegister"] { display: none !important; }
+  .settings-nav { padding: 10px 8px 10px 12px; gap: 5px; }
+  .settings-nav-item { padding: 7px 10px; font-size: 11.5px; }
 
   /* Register: single column, large cards, cart bottom sheet */
   #meet-sell-pane.register-layout, .register-layout {
