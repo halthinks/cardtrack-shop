@@ -23,7 +23,7 @@
 <link rel="apple-touch-icon" href="./icons/icon-192.png" />
 <link rel="stylesheet" href="./assets/app.css" />
 </head>
-<body class="meet-active">
+<body>
 <div id="ct-onboard" role="dialog" aria-modal="true" aria-labelledby="ob-title" aria-hidden="true">
   <div class="ob-card">
     <div class="ob-step active" id="ob-step-welcome">
@@ -96,7 +96,7 @@
 
 <!-- HEADER -->
 <div id="offline-banner" class="sys-banner offline">You're offline — sales, inventory, trade-ins, and cached comps still work on this device.</div>
-<div id="backup-banner" class="sys-banner warn" role="status"><span>Books not backed up in the last 24 hours.</span> <button type="button" onclick="backupJSON()">Backup now</button></div>
+<div id="backup-banner" class="sys-banner warn" role="status"><span>Books not backed up in the last 24 hours.</span> <span class="bb-actions"><button type="button" onclick="backupJSON()">Backup now</button><button type="button" class="bb-dismiss" onclick="dismissBackupBanner()" aria-label="Dismiss">×</button></span></div>
 
 <div id="pin-lock-overlay" class="pin-lock-overlay" role="dialog" aria-modal="true" aria-label="PIN unlock">
   <div class="pin-lock-card">
@@ -1567,7 +1567,7 @@
     <div class="card-title">About</div>
     <p style="font-size:13px;line-height:1.5;color:var(--muted)">CardTrack Meet OS — single-file shop OS for meets: Register, trade-ins, inventory, storefront, store credit QR, and insights. Data stays on this device. No account and no monthly fee for the core shop.</p>
     <p style="font-size:12px;color:var(--muted);margin-top:8px"><b>Version</b> 2026.09.13 · Make-better · Home shell · Live prices · Enterprise Register</p>
-    <p style="font-size:12px;color:var(--muted);margin-top:6px">Changelog: Register smart grid binding, empty-cart $0 Charge, Settings section nav, quieter backup banner. Preserves big cards + sparklines. No Stripe live.</p>
+    <p style="font-size:12px;color:var(--muted);margin-top:6px">Changelog: Mobile Charge bar no longer covers Backup; QR modal for storefront + customer; phone-first Register/cart sheet. No Stripe live.</p>
     <p style="font-size:12px;margin-top:10px"><a href="https://cardtrack-shop.vercel.app" target="_blank" rel="noopener" style="color:var(--accent)">Sell this app</a> <span class="text-muted">— public marketing page (separate from in-app storefront)</span></p>
   </div>
 </div>
@@ -1998,7 +1998,7 @@
 <!-- Customer QR sheet -->
 <div class="sheet" id="sheet-customer-qr" onclick="if(event.target===this)closeSheet('sheet-customer-qr')">
   <div class="sheet-box qr-modal-box" onclick="event.stopPropagation()">
-    <div class="modal-hdr"><span>Customer storefront QR</span><button class="modal-x" type="button" onclick="closeSheet('sheet-customer-qr')">×</button></div>
+    <div class="modal-hdr"><span id="qr-modal-title">Storefront QR</span><button class="modal-x" type="button" onclick="closeSheet('sheet-customer-qr')" aria-label="Close">×</button></div>
     <div id="qr-cust-name" style="font-weight:800;font-size:18px">Customer</div>
     <div id="qr-cust-credit" class="text-gold" style="font-weight:800;margin-top:4px">$0.00 credit</div>
     <div class="qr-canvas-wrap"><canvas id="qr-canvas" width="220" height="220"></canvas><img id="qr-img" alt="QR" style="display:none"></div>
