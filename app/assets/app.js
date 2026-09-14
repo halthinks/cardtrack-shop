@@ -2867,9 +2867,21 @@ function saveShopSettingsFromForm() {
     const el = $('rate-' + c);
     if (el) s.conditionRates[c] = int(el.value, Math.round(DEFAULT_COND_RATES[c] * 100)) / 100;
   });
-  if (typeof saveShopExtrasFromForm === 'function') saveShopExtrasFromForm();
-  Object.assign(s, loadSettings());
+  /* Apply extras onto the SAME object. Do NOT call saveShopExtrasFromForm() then
+     Object.assign(s, loadSettings()) — extras saves without profile fields, and
+     assign then clobbers the new shopName with the stale value. */
+  if ($('set-pay-link')) s.paymentLinkUrl = $('set-pay-link').value.trim();
+  if ($('set-inquiry-email')) s.inquiryEmail = $('set-inquiry-email').value.trim();
+  if ($('set-theme-dark')) s.theme = $('set-theme-dark').checked ? 'dark' : 'light';
+  s.p2p = s.p2p || { cashapp: '', venmo: '', zelle: '', paypal: '' };
+  if ($('set-p2p-cashapp')) s.p2p.cashapp = $('set-p2p-cashapp').value.trim();
+  if ($('set-p2p-venmo')) s.p2p.venmo = $('set-p2p-venmo').value.trim();
+  if ($('set-p2p-zelle')) s.p2p.zelle = $('set-p2p-zelle').value.trim();
+  if ($('set-p2p-paypal')) s.p2p.paypal = $('set-p2p-paypal').value.trim();
+  if (!Array.isArray(s.promos)) s.promos = [];
   saveSettings(s);
+  if (typeof applyTheme === 'function') applyTheme();
+  if (typeof renderPromoList === 'function') renderPromoList();
   applyShopChrome();
   renderQuote();
   ['sale-comps', 'bl-comps'].forEach(function (id) {
