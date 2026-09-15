@@ -1,5 +1,5 @@
-/* CardTrack Meet OS service worker 9eed996f8476 */
-const CACHE = 'cardtrack-shell-9eed996f8476';
+/* CardTrack Meet OS service worker 6bd0030a7406 */
+const CACHE = 'cardtrack-shell-6bd0030a7406';
 const SHELL = ['./','./index.html','./assets/app.css','./assets/app.js','./manifest.webmanifest','./version.json','./icons/icon-192.png','./icons/icon-512.png','./icons/icon.svg'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });

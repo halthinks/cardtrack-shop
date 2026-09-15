@@ -476,7 +476,7 @@ body.show-mode .scan-lane .btn { min-height: 56px; font-size: 16px; }
 body.show-mode #sec-log .btn-primary, body.show-mode #sec-buylist .btn-primary { min-height: 60px; font-size: 18px; }
 .scan-lane-hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
 
-body:not(.advanced) #sec-ebay, body:not(.advanced) #sec-game { display: none !important; }
+/* eBay + Games always reachable via More (never blank). Advanced still gates overflow tabs. */
 body.show-mode .tab[data-tab="scan"],
 body.show-mode .tab[data-tab="prices"],
 body.show-mode .tab[data-tab="watchlist"] { display: none; }
@@ -485,10 +485,14 @@ body.show-mode .tab[data-tab="watchlist"] { display: none; }
 .dead-row, .vel-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; gap: 8px; }
 .inv-pick { max-height: 220px; overflow-y: auto; margin-top: 8px; }
 
-.tab[data-tab="ebay"], .tab[data-tab="game"], #sec-ebay { display: none !important; }
-body.advanced .tab[data-tab="ebay"], body.advanced .tab[data-tab="game"] { display: flex !important; }
-body.advanced #sec-ebay.section.active { display: block !important; }
-body.advanced #sec-game.section.active { display: block !important; }
+.tab[data-tab="ebay"], .tab[data-tab="game"] { display: none !important; }
+body.advanced .tab[data-tab="ebay"], body.advanced .tab[data-tab="game"],
+body.show-more .tab[data-tab="ebay"], body.show-more .tab[data-tab="game"] { display: flex !important; }
+/* Active section always wins — More menu must open a real page */
+#sec-ebay.section.active, #sec-game.section.active { display: block !important; visibility: visible !important; }
+#sec-ebay, #sec-game { padding: 16px; max-width: 1280px; margin: 0 auto; }
+body:not(.storefront-public) #sec-ebay.section.active,
+body:not(.storefront-public) #sec-game.section.active { padding: 16px !important; overflow: auto; }
 
 .sku-row { display: flex; gap: 8px; align-items: stretch; }
 .sku-row input { flex: 1; }
@@ -715,15 +719,34 @@ body.storefront-public .sf-admin { display: none !important; }
 .more-menu {
   display: none; position: absolute; right: 12px; top: 56px;
   background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-  box-shadow: var(--shadow); min-width: 200px; z-index: 200; padding: 6px;
+  box-shadow: var(--shadow); min-width: 220px; z-index: 2400; padding: 6px;
 }
 .more-menu.open { display: block; }
-.more-menu button {
+.more-menu button, .more-menu button.adv-only {
   display: block; width: 100%; text-align: left; background: none; border: none;
-  padding: 10px 12px; min-height: 40px; border-radius: 8px; cursor: pointer;
-  font-size: 13px; font-weight: 600; color: var(--text); font-family: inherit;
+  padding: 12px 14px; min-height: 44px; border-radius: 8px; cursor: pointer;
+  font-size: 14px; font-weight: 600; color: var(--text); font-family: inherit;
 }
 .more-menu button:hover { background: var(--surface2); }
+.more-menu-backdrop {
+  display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.45);
+  z-index: 2390;
+}
+.more-menu-backdrop.open { display: block; }
+@media (max-width: 720px) {
+  .more-menu {
+    position: fixed; left: 0; right: 0; top: auto; bottom: 0;
+    border-radius: 16px 16px 0 0; min-width: 0; width: 100%;
+    padding: 10px 12px calc(16px + env(safe-area-inset-bottom, 0px));
+    max-height: min(72vh, 520px); overflow-y: auto;
+    box-shadow: 0 -8px 32px rgba(0,0,0,0.35);
+  }
+  .more-menu::before {
+    content: ''; display: block; width: 36px; height: 4px; border-radius: 999px;
+    background: var(--border); margin: 4px auto 10px;
+  }
+  .more-menu button { font-size: 15px; min-height: 48px; }
+}
 .hdr-wrap { position: relative; }
 
 .inv-toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }

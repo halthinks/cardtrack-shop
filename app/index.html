@@ -141,14 +141,15 @@
     <button class="hdr-btn icon-only admin-only" id="btn-theme" type="button" onclick="toggleTheme()" title="Toggle theme" aria-label="Theme"><span data-ico-inline="theme"></span></button>
     <button class="hdr-btn icon-only admin-only" type="button" onclick="backupJSON()" title="Backup books as JSON" aria-label="Backup"><span data-ico-inline="backup"></span></button>
     <button class="hdr-btn admin-only" id="btn-more" type="button" onclick="toggleMoreMenu()">More</button>
-    <div class="more-menu" id="more-menu">
-      <button type="button" onclick="switchTab('shop')">Settings</button>
-      <button type="button" onclick="switchTab('prices')">Prices lookup</button>
-      <button type="button" onclick="switchTab('watchlist')">Watchlist</button>
-      <button type="button" onclick="switchTab('scan')">Receipt scan</button>
-      <button type="button" class="adv-only" onclick="switchTab('ebay')">eBay monitor</button>
-      <button type="button" class="adv-only" onclick="switchTab('game')">Games</button>
-      <button type="button" onclick="copyStorefrontLink()">Copy storefront link</button>
+    <div class="more-menu-backdrop" id="more-menu-backdrop" onclick="closeMoreMenu()"></div>
+    <div class="more-menu" id="more-menu" role="menu" aria-label="More">
+      <button type="button" role="menuitem" onclick="closeMoreMenu();switchTab('shop')">Settings</button>
+      <button type="button" role="menuitem" onclick="closeMoreMenu();switchTab('prices')">Prices lookup</button>
+      <button type="button" role="menuitem" onclick="closeMoreMenu();switchTab('watchlist')">Watchlist</button>
+      <button type="button" role="menuitem" onclick="closeMoreMenu();switchTab('scan')">Receipt scan</button>
+      <button type="button" role="menuitem" onclick="closeMoreMenu();switchTab('ebay')">eBay monitor</button>
+      <button type="button" role="menuitem" onclick="closeMoreMenu();switchTab('game')">Games</button>
+      <button type="button" role="menuitem" onclick="closeMoreMenu();copyStorefrontLink()">Copy storefront link</button>
     </div>
   </div>
 </div>
@@ -1576,11 +1577,21 @@
 
 <!-- EBAY TAB -->
 
-<div class="section retail-hidden-ebay" id="sec-ebay" style="display:none" aria-hidden="true">
+<div class="section" id="sec-ebay">
   <div class="ebay-scan-bar">
     <button class="btn" onclick="scanEbay()" id="ebay-scan-btn" style="background:var(--gold);color:#000;font-weight:700">Scan eBay Now</button>
     <div id="ebay-status" class="ebay-status">Ready</div>
     <div id="ebay-countdown" class="ebay-status" style="color:var(--gold)"></div>
+  </div>
+  <div class="card" id="ebay-setup-card" style="display:none;margin-bottom:14px">
+    <div class="card-title">eBay monitor</div>
+    <p style="font-size:13px;color:var(--muted);margin:0 0 10px;line-height:1.45">Live scan needs a self-hosted CardTrack eBay API (<code>/opportunities</code>). Without it, this page still works offline — review last scan cache, filters, and setup notes below.</p>
+    <ul style="font-size:12px;color:var(--muted);margin:0 0 12px;padding-left:18px;line-height:1.5">
+      <li>Point this device at your API host (same origin as the app, or reverse-proxy <code>/opportunities</code> + <code>/queue_stats</code>).</li>
+      <li>Cached deals from the last successful scan stay on this device.</li>
+      <li>Tap <strong>Scan eBay Now</strong> when the API is reachable.</li>
+    </ul>
+    <div id="ebay-setup-status" style="font-size:12px;font-weight:650;color:var(--gold)">Checking API…</div>
   </div>
   <div id="ebay-stats" style="display:flex;gap:14px;margin-bottom:16px;flex-wrap:wrap">
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 16px;min-width:110px">
@@ -1705,7 +1716,7 @@
     <!-- Memory Match (inline) -->
     <div id="game-memory">
       <h2 style="color:var(--gold);margin-bottom:6px;font-size:18px">🎴 Memory Match</h2>
-      <p style="color:var(--muted);font-size:13px;margin-bottom:20px">Optional downtime game — hidden from the shop floor unless Advanced is on.</p>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:20px">Optional downtime games — open anytime from More.</p>
       <div id="memory-win-overlay">
         <div class="win-title">🏆 YOU WIN!</div>
         <div class="win-stats" id="win-stat-moves">0 moves</div>
