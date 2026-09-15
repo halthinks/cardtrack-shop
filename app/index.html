@@ -140,17 +140,7 @@
     </button>
     <button class="hdr-btn icon-only admin-only" id="btn-theme" type="button" onclick="toggleTheme()" title="Toggle theme" aria-label="Theme"><span data-ico-inline="theme"></span></button>
     <button class="hdr-btn icon-only admin-only" type="button" onclick="backupJSON()" title="Backup books as JSON" aria-label="Backup"><span data-ico-inline="backup"></span></button>
-    <button class="hdr-btn admin-only" id="btn-more" type="button" onclick="toggleMoreMenu(event)">More</button>
-    <div class="more-menu-backdrop" id="more-menu-backdrop" onclick="closeMoreMenu()"></div>
-    <div class="more-menu" id="more-menu" role="menu" aria-label="More">
-      <button type="button" role="menuitem" onclick="closeMoreMenu();switchTab('shop')">Settings</button>
-      <button type="button" role="menuitem" onclick="closeMoreMenu();switchTab('prices')">Prices lookup</button>
-      <button type="button" role="menuitem" onclick="closeMoreMenu();switchTab('watchlist')">Watchlist</button>
-      <button type="button" role="menuitem" onclick="closeMoreMenu();switchTab('scan')">Receipt scan</button>
-      <button type="button" role="menuitem" onclick="closeMoreMenu();switchTab('ebay')">eBay monitor</button>
-      <button type="button" role="menuitem" onclick="closeMoreMenu();switchTab('game')">Games</button>
-      <button type="button" role="menuitem" onclick="closeMoreMenu();copyStorefrontLink()">Copy storefront link</button>
-    </div>
+    <button class="hdr-btn admin-only" id="btn-more" type="button" onclick="toggleMoreMenu(event)" aria-expanded="false" aria-haspopup="true" aria-controls="more-menu">More</button>
   </div>
 </div>
 
@@ -1705,85 +1695,134 @@
 
 <!-- GAME TAB -->
 <div class="section" id="sec-game">
-  <div style="text-align:center;padding:12px 0 8px">
-    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:14px;flex-wrap:wrap">
-      <button class="btn" onclick="loadGame('memory')" style="background:var(--gold);color:#000;font-weight:700;padding:10px 20px;border:none;border-radius:8px;cursor:pointer">🎴 Memory Match</button>
-      <button class="btn" onclick="loadGame('pacman')" style="background:var(--blue);color:#fff;font-weight:700;padding:10px 20px;border:none;border-radius:8px;cursor:pointer">👻 Pac-Man</button>
-      <button class="btn" onclick="loadGame('invaders')" style="background:var(--purple);color:#fff;font-weight:700;padding:10px 20px;border:none;border-radius:8px;cursor:pointer">🚀 Space Invaders</button>
-      <button class="btn" onclick="loadGame('megaman')" style="background:linear-gradient(135deg,#00b4ff,#0066cc);color:#fff;font-weight:700;padding:10px 20px;border:none;border-radius:8px;cursor:pointer">🤖 Mega Man</button>
+  <div class="arcade-shell">
+    <!-- Lobby -->
+    <div id="game-lobby">
+      <div class="arcade-hero">
+        <div class="arcade-kicker">CardTrack Arcade</div>
+        <h2 class="arcade-title">Break-room lounge</h2>
+        <p class="arcade-sub">Offline downtime games for the meet floor — crisp touch controls, local high scores, no ads.</p>
+      </div>
+      <div class="arcade-grid" id="arcade-grid">
+        <article class="arcade-card" data-game="memory">
+          <div class="ac-badge"><span class="ac-orb" style="color:#fbbf24;background:#fbbf24"></span> Puzzle</div>
+          <h3>Memory Match</h3>
+          <p>Flip foil cards, chain combos, beat your best moves. Premium 3D flips — fully offline.</p>
+          <div class="ac-foot">
+            <div class="ac-score">Best <b id="hs-memory">—</b></div>
+            <button type="button" class="ac-play" onclick="loadGame('memory')">Play</button>
+          </div>
+        </article>
+        <article class="arcade-card" data-game="pacman">
+          <div class="ac-badge"><span class="ac-orb" style="color:#60a5fa;background:#60a5fa"></span> Maze</div>
+          <h3>Pac-Dash</h3>
+          <p>Classic maze dash with power pellets, ghosts, and a glowing HUD. Swipe or D-pad.</p>
+          <div class="ac-foot">
+            <div class="ac-score">Best <b id="hs-pacman">—</b></div>
+            <button type="button" class="ac-play" onclick="loadGame('pacman')">Play</button>
+          </div>
+        </article>
+        <article class="arcade-card" data-game="invaders">
+          <div class="ac-badge"><span class="ac-orb" style="color:#c084fc;background:#c084fc"></span> Shooter</div>
+          <h3>Invaders</h3>
+          <p>Wave clear with particles and fair difficulty ramp. Large FIRE hit target for thumbs.</p>
+          <div class="ac-foot">
+            <div class="ac-score">Best <b id="hs-invaders">—</b></div>
+            <button type="button" class="ac-play" onclick="loadGame('invaders')">Play</button>
+          </div>
+        </article>
+        <article class="arcade-card" data-game="megaman">
+          <div class="ac-badge"><span class="ac-orb" style="color:#22d3ee;background:#22d3ee"></span> Runner</div>
+          <h3>Mega Runner</h3>
+          <p>Side-scroll platformer slice — jump, slide, charge shot. Feels intentional, not a stub.</p>
+          <div class="ac-foot">
+            <div class="ac-score">Best <b id="hs-megaman">—</b></div>
+            <button type="button" class="ac-play" onclick="loadGame('megaman')">Play</button>
+          </div>
+        </article>
+      </div>
     </div>
 
-    <!-- Memory Match (inline) -->
-    <div id="game-memory">
-      <h2 style="color:var(--gold);margin-bottom:6px;font-size:18px">🎴 Memory Match</h2>
-      <p style="color:var(--muted);font-size:13px;margin-bottom:20px">Optional downtime games — open anytime from More.</p>
+    <!-- Shared play chrome -->
+    <div class="game-play-chrome" id="game-play-chrome">
+      <div class="gpc-left">
+        <button type="button" class="game-back-btn" onclick="showGameLobby()">← Lobby</button>
+        <span class="gpc-title" id="game-play-title">Game</span>
+      </div>
+      <div class="gpc-left">
+        <button type="button" class="game-ctrl-btn" id="game-pause-btn" onclick="toggleGamePause()">Pause</button>
+        <button type="button" class="game-ctrl-btn primary" id="game-restart-btn" onclick="restartActiveGame()">Restart</button>
+      </div>
+    </div>
+
+    <!-- Memory Match -->
+    <div id="game-memory" style="display:none">
       <div id="memory-win-overlay">
-        <div class="win-title">🏆 YOU WIN!</div>
+        <div class="win-title">YOU WIN</div>
         <div class="win-stats" id="win-stat-moves">0 moves</div>
         <div class="win-stats" id="win-stat-time">0:00</div>
-        <div class="win-sub">Can you do better? Hit New Game!</div>
-        <button onclick="dismissWinAndRestart()">🔄 Play Again</button>
+        <div class="win-sub">New personal best? Hit Play Again.</div>
+        <button type="button" onclick="dismissWinAndRestart()">Play Again</button>
       </div>
-      <div style="display:flex;justify-content:center;gap:16px;margin-bottom:20px;flex-wrap:wrap">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 20px;min-width:90px">
+      <div style="display:flex;justify-content:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 18px;min-width:88px">
           <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Moves</div>
-          <div style="font-size:24px;font-weight:700;color:var(--gold)" id="game-moves">0</div>
+          <div style="font-size:22px;font-weight:750;color:var(--gold);font-variant-numeric:tabular-nums" id="game-moves">0</div>
         </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 20px;min-width:90px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 18px;min-width:88px">
           <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Pairs</div>
-          <div style="font-size:24px;font-weight:700;color:var(--gold)" id="game-pairs">0/8</div>
+          <div style="font-size:22px;font-weight:750;color:var(--gold);font-variant-numeric:tabular-nums" id="game-pairs">0/8</div>
         </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 20px;min-width:90px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 18px;min-width:88px">
           <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Time</div>
-          <div style="font-size:24px;font-weight:700;color:var(--gold)" id="game-time">0:00</div>
+          <div style="font-size:22px;font-weight:750;color:var(--gold);font-variant-numeric:tabular-nums" id="game-time">0:00</div>
         </div>
       </div>
-      <div id="memory-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:440px;margin:0 auto 20px">
-        <div style="text-align:center;padding:40px 0;color:var(--muted);grid-column:1/-1;font-size:13px">Click "New Game" to start!</div>
+      <div id="memory-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:440px;margin:0 auto 16px"></div>
+      <div id="game-combo" style="font-size:14px;min-height:24px;margin-bottom:12px;text-align:center"></div>
+      <div style="text-align:center">
+        <button type="button" class="game-ctrl-btn primary" onclick="initGame()">New Game</button>
       </div>
-      <div id="game-combo" style="font-size:14px;color:var(--gold);min-height:24px;margin-bottom:14px;font-weight:700"></div>
-      <button onclick="initGame()" style="background:linear-gradient(135deg,#00a040,#006020);color:#fff;border:none;border-radius:8px;padding:12px 28px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 15px rgba(0,160,64,.3)">🔄 New Game</button>
     </div>
 
-    <!-- Pac-Man (inline canvas) -->
+    <!-- Pac-Dash -->
     <div id="pacman-wrap" class="game-canvas-wrap">
       <canvas id="pacman-c" width="560" height="620"></canvas>
       <div id="pacman-touch" class="touch-controls">
         <div class="touch-dpad">
-          <div class="touch-btn up" data-touch="up">&#9650;</div>
-          <div class="touch-btn left" data-touch="left">&#9664;</div>
-          <div class="touch-btn right" data-touch="right">&#9654;</div>
-          <div class="touch-btn down" data-touch="down">&#9660;</div>
+          <div class="touch-btn up" data-touch="up">▲</div>
+          <div class="touch-btn left" data-touch="left">◀</div>
+          <div class="touch-btn right" data-touch="right">▶</div>
+          <div class="touch-btn down" data-touch="down">▼</div>
         </div>
         <div class="touch-actions">
           <div class="touch-btn fire" data-touch="fire">FIRE</div>
         </div>
       </div>
-      <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:8px">D-pad to move &middot; FIRE to shoot &middot; Keys: arrows, Space</div>
+      <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:4px">D-pad / swipe · P pause · Space restart when over</div>
     </div>
 
-    <!-- Space Invaders (inline canvas) -->
+    <!-- Invaders -->
     <div id="invaders-wrap" class="game-canvas-wrap" style="position:relative">
       <canvas id="invaders-c" width="600" height="700"></canvas>
-      <!-- Floating fire button: upper left corner, fixed position inside wrap -->
-      <div id="invaders-fire-btn" class="touch-btn fire floating-fire" data-touch="fire" style="position:absolute;top:8px;left:8px;width:56px;height:56px;font-size:13px;z-index:10;pointer-events:all">FIRE</div>
+      <div id="invaders-fire-btn" class="touch-btn fire floating-fire" data-touch="fire" style="position:absolute;top:8px;left:8px;width:64px;height:64px;font-size:13px;z-index:10;pointer-events:all">FIRE</div>
       <div id="invaders-touch" class="touch-controls">
         <div class="touch-dpad">
-          <div class="touch-btn left" data-touch="left">&#9664;</div>
-          <div class="touch-btn right" data-touch="right">&#9654;</div>
+          <div class="touch-btn left" data-touch="left">◀</div>
+          <div class="touch-btn right" data-touch="right">▶</div>
         </div>
       </div>
-      <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:8px">D-pad to move &middot; Upper FIRE button or canvas tap to shoot</div>
+      <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:4px">D-pad · FIRE · P pause</div>
     </div>
 
-    <!-- Mega Man (inline canvas) -->
+    <!-- Mega Runner -->
     <div id="megaman-wrap" class="game-canvas-wrap">
       <canvas id="megaman-c" width="800" height="400"></canvas>
       <div id="megaman-touch" class="touch-controls">
         <div class="touch-dpad">
-          <div class="touch-btn up" data-touch="up">&#9650;</div>
-          <div class="touch-btn left" data-touch="left">&#9664;</div>
-          <div class="touch-btn right" data-touch="right">&#9654;</div>
+          <div class="touch-btn up" data-touch="up">▲</div>
+          <div class="touch-btn left" data-touch="left">◀</div>
+          <div class="touch-btn right" data-touch="right">▶</div>
           <div class="touch-btn down" data-touch="slide">SLIDE</div>
         </div>
         <div class="touch-actions">
@@ -1791,7 +1830,7 @@
           <div class="touch-btn fire" data-touch="fire">FIRE</div>
         </div>
       </div>
-      <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:8px">Keys: &larr;&rarr; move &middot; Z jump &middot; X/Space fire (hold to charge) &middot; &uarr; aim up &middot; &darr; slide</div>
+      <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:4px">Move · JUMP · FIRE (hold charge) · SLIDE · P pause</div>
     </div>
   </div>
 </div>
@@ -1964,6 +2003,19 @@
 </div>
 <div class="toast" id="toast"></div>
 </div><!-- /ent-main -->
+
+<!-- More sheet: viewport-fixed (NOT inside .header — backdrop-filter creates a containing block) -->
+<div class="more-menu-backdrop" id="more-menu-backdrop" onclick="closeMoreMenu()"></div>
+<div class="more-menu" id="more-menu" role="menu" aria-label="More">
+  <button type="button" role="menuitem" onclick="closeMoreMenu();switchTab('shop')">Settings</button>
+  <button type="button" role="menuitem" onclick="closeMoreMenu();switchTab('prices')">Prices lookup</button>
+  <button type="button" role="menuitem" onclick="closeMoreMenu();switchTab('watchlist')">Watchlist</button>
+  <button type="button" role="menuitem" onclick="closeMoreMenu();switchTab('scan')">Receipt scan</button>
+  <button type="button" role="menuitem" onclick="closeMoreMenu();switchTab('ebay')">eBay monitor</button>
+  <button type="button" role="menuitem" onclick="closeMoreMenu();switchTab('game')">Games</button>
+  <button type="button" role="menuitem" onclick="closeMoreMenu();copyStorefrontLink()">Copy storefront link</button>
+</div>
+
 </div><!-- /ent-app -->
 
 

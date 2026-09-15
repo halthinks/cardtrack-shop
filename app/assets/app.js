@@ -282,6 +282,10 @@ function closeMoreMenu() {
   var bd = $('more-menu-backdrop');
   if (m) m.classList.remove('open');
   if (bd) bd.classList.remove('open');
+  try { document.body.classList.remove('more-open'); } catch (e) {}
+  document.querySelectorAll('#btn-more, .bnav-item[data-tab="more"]').forEach(function (b) {
+    try { b.setAttribute('aria-expanded', 'false'); } catch (e2) {}
+  });
 }
 function switchTab(name) {
   try { if (typeof closeMoreMenu === 'function') closeMoreMenu(); } catch (e) {}
@@ -314,7 +318,7 @@ function switchTab(name) {
     if ($('shop-title')) $('shop-title').textContent = titles[name] || 'CardTrack';
   } catch (e) {}
   try { localStorage.setItem(CT_LAST_TAB_KEY, name); } catch (e) {}
-  if (name === 'game') { if (typeof loadGame === 'function') loadGame('memory'); }
+  if (name === 'game') { if (typeof showGameLobby === 'function') showGameLobby(); else if (typeof loadGame === 'function') loadGame('memory'); }
   if (name === 'ebay' && typeof loadEbay === 'function') loadEbay();
   if (name === 'prices') {
     try {
@@ -5328,51 +5332,127 @@ window.ctInitTech10 = ctInitTech10;
 
 
 
-// MEMORY GAME --------------------------------------------
-// Real Pokemon card images on fronts; no generic logos on backs
-const MEM_POKEMON = [
-  { name: 'Charizard', id: 6 },
-  { name: 'Pikachu',   id: 25 },
-  { name: 'Mewtwo',    id: 150 },
-  { name: 'Eevee',     id: 133 },
-  { name: 'Lugia',     id: 249 },
-  { name: 'Gengar',    id: 94 },
-  { name: 'Rayquaza',  id: 384 },
-  { name: 'Giratina',  id: 487 },
-  { name: 'Blastoise', id: 9 },
-  { name: 'Venusaur',  id: 3 },
-  { name: 'Entei',     id: 244 },
-  { name: 'Raikou',    id: 243 },
-  { name: 'Mew',       id: 151 },
-  { name: 'Umbreon',   id: 197 },
-  { name: 'Espeon',    id: 196 },
-  { name: 'Reshiram',  id: 643 }
-];
-// Reliable sprite CDN (raw GitHub, CORS-open). Full set only uses 8 for the 4x4 board.
-const MEM_CARDS = MEM_POKEMON.map(function(p){
-  return {
-    name: p.name,
-    img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/' + p.id + '.png',
-    fallback: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + p.id + '.png'
+// MEMORY GAME + ARCADE LOUNGE --------------------------------
+window._ctActiveGameName = null;
+window._ctGamePaused = false;
+
+function ctLoadGameScores() {
+  try {
+    var raw = localStorage.getItem('ct_game_scores');
+    var o = raw ? JSON.parse(raw) : {};
+    return o && typeof o === 'object' ? o : {};
+  } catch (e) { return {}; }
+}
+function ctSaveGameScore(game, score, preferLower) {
+  try {
+    var o = ctLoadGameScores();
+    var prev = o[game];
+    var n = Number(score);
+    if (isNaN(n)) return;
+    if (prev == null || (preferLower ? n < Number(prev) : n > Number(prev))) {
+      o[game] = n;
+      localStorage.setItem('ct_game_scores', JSON.stringify(o));
+    }
+    ctRefreshArcadeScores();
+  } catch (e) {}
+}
+function ctRefreshArcadeScores() {
+  var o = ctLoadGameScores();
+  var map = {
+    memory: 'hs-memory',
+    pacman: 'hs-pacman',
+    invaders: 'hs-invaders',
+    megaman: 'hs-megaman'
   };
+  Object.keys(map).forEach(function (g) {
+    var el = document.getElementById(map[g]);
+    if (!el) return;
+    if (o[g] == null) { el.textContent = '—'; return; }
+    if (g === 'memory') el.textContent = o[g] + ' moves';
+    else el.textContent = String(o[g]);
+  });
+}
+function showGameLobby() {
+  try { if (window._activeGameCleanup) window._activeGameCleanup(); } catch (e) {}
+  window._activeGameCleanup = null;
+  window._ctActiveGameName = null;
+  window._ctGamePaused = false;
+  try { document.body.classList.remove('game-playing'); } catch (e2) {}
+  var wraps = ['game-memory', 'pacman-wrap', 'invaders-wrap', 'megaman-wrap'];
+  wraps.forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; el.classList.remove('active'); }
+  });
+  var touches = ['pacman-touch', 'invaders-touch', 'megaman-touch'];
+  touches.forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  });
+  var lobby = document.getElementById('game-lobby');
+  var chrome = document.getElementById('game-play-chrome');
+  if (lobby) lobby.style.display = 'block';
+  if (chrome) chrome.style.display = 'none';
+  var winEl = document.getElementById('memory-win-overlay');
+  if (winEl) winEl.classList.remove('show');
+  clearInterval(memTimer);
+  ctRefreshArcadeScores();
+  var pb = document.getElementById('game-pause-btn');
+  if (pb) pb.textContent = 'Pause';
+}
+
+function toggleGamePause() {
+  window._ctGamePaused = !window._ctGamePaused;
+  var pb = document.getElementById('game-pause-btn');
+  if (pb) pb.textContent = window._ctGamePaused ? 'Resume' : 'Pause';
+}
+function restartActiveGame() {
+  var n = window._ctActiveGameName;
+  if (!n) return;
+  window._ctGamePaused = false;
+  var pb = document.getElementById('game-pause-btn');
+  if (pb) pb.textContent = 'Pause';
+  loadGame(n);
+}
+
+var MEM_ORBS = [
+  { name: 'Charizard', hue: '#f97316' },
+  { name: 'Pikachu',   hue: '#facc15' },
+  { name: 'Mewtwo',    hue: '#c084fc' },
+  { name: 'Eevee',     hue: '#d6a36a' },
+  { name: 'Lugia',     hue: '#93c5fd' },
+  { name: 'Gengar',    hue: '#a78bfa' },
+  { name: 'Rayquaza',  hue: '#4ade80' },
+  { name: 'Giratina',  hue: '#fb7185' },
+  { name: 'Blastoise', hue: '#38bdf8' },
+  { name: 'Venusaur',  hue: '#22c55e' },
+  { name: 'Entei',     hue: '#ef4444' },
+  { name: 'Raikou',    hue: '#818cf8' },
+  { name: 'Mew',       hue: '#f9a8d4' },
+  { name: 'Umbreon',   hue: '#64748b' },
+  { name: 'Espeon',    hue: '#e879f9' },
+  { name: 'Reshiram',  hue: '#e2e8f0' }
+];
+// Offline tasteful orbs (no external art required)
+const MEM_CARDS = MEM_ORBS.map(function (p) {
+  return { name: p.name, hue: p.hue, img: '', fallback: '' };
 });
-let memFlipped=[], memMatched=[], memMoves=0, memPairs=0, memSeconds=0, memLocked=false, memTimer=null, shuffled=[];
+let memFlipped = [], memMatched = [], memMoves = 0, memPairs = 0, memSeconds = 0, memLocked = false, memTimer = null, shuffled = [];
+let memComboStreak = 0;
 
 // Global: cleanup handler for the currently-running game. Called before switching games.
 window._activeGameCleanup = null;
 
-// Generic touch-button key simulator. Binds pointer events to .touch-btn[data-key].
-// Repeatedly sets a key state while pressed so games polling `keys` object keep moving.
+// Generic touch-button key simulator (legacy helper; canvas games use bindGameTouch).
 function bindTouchControls(containerId) {
   var cont = document.getElementById(containerId);
-  if (!cont) return function(){};
+  if (!cont) return function () {};
   var btns = cont.querySelectorAll('.touch-btn');
   var listeners = [];
   function fireKey(type, key) {
     var ev = new KeyboardEvent(type, { key: key, bubbles: true, cancelable: true });
     document.dispatchEvent(ev);
   }
-  btns.forEach(function(btn) {
+  btns.forEach(function (btn) {
     var key = btn.getAttribute('data-key');
     if (!key) return;
     var repeat = null;
@@ -5380,9 +5460,8 @@ function bindTouchControls(containerId) {
       e.preventDefault();
       btn.classList.add('pressed');
       fireKey('keydown', key);
-      // For held movement, re-dispatch keydown every 80ms so game state polling stays active
       if (repeat) clearInterval(repeat);
-      repeat = setInterval(function(){ fireKey('keydown', key); }, 80);
+      repeat = setInterval(function () { fireKey('keydown', key); }, 80);
     }
     function up(e) {
       if (e) e.preventDefault();
@@ -5394,8 +5473,8 @@ function bindTouchControls(containerId) {
     btn.addEventListener('pointerup', up);
     btn.addEventListener('pointercancel', up);
     btn.addEventListener('pointerleave', up);
-    btn.addEventListener('touchstart', function(e){ e.preventDefault(); }, { passive: false });
-    listeners.push(function(){
+    btn.addEventListener('touchstart', function (e) { e.preventDefault(); }, { passive: false });
+    listeners.push(function () {
       btn.removeEventListener('pointerdown', down);
       btn.removeEventListener('pointerup', up);
       btn.removeEventListener('pointercancel', up);
@@ -5404,34 +5483,59 @@ function bindTouchControls(containerId) {
       btn.classList.remove('pressed');
     });
   });
-  return function cleanup() { listeners.forEach(function(fn){ try { fn(); } catch(e){} }); };
+  return function cleanup() { listeners.forEach(function (fn) { try { fn(); } catch (e) {} }); };
 }
 
 function loadGame(name) {
-  // Run previous game's cleanup (removes key listeners + RAFs) before switching
-  try { if (window._activeGameCleanup) window._activeGameCleanup(); } catch(e){}
+  try { if (window._activeGameCleanup) window._activeGameCleanup(); } catch (e) {}
   window._activeGameCleanup = null;
+  window._ctGamePaused = false;
+  var pb = document.getElementById('game-pause-btn');
+  if (pb) pb.textContent = 'Pause';
 
-  // Hide all game containers + deactivate their touch overlays
-  var wraps = ['game-memory','pacman-wrap','invaders-wrap','megaman-wrap'];
-  wraps.forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
-  var touches = ['pacman-touch','invaders-touch','megaman-touch'];
-  touches.forEach(function(id){ var el=document.getElementById(id); if(el) el.classList.remove('active'); });
+  if (name === 'lobby' || !name) {
+    showGameLobby();
+    return;
+  }
 
-  // Show selected game + activate its touch controls
+  var lobby = document.getElementById('game-lobby');
+  if (lobby) lobby.style.display = 'none';
+  var chrome = document.getElementById('game-play-chrome');
+  if (chrome) chrome.style.display = 'flex';
+  try { document.body.classList.add('game-playing'); } catch (e2) {}
+  window._ctActiveGameName = name;
+
+  var titles = { memory: 'Memory Match', pacman: 'Pac-Dash', invaders: 'Invaders', megaman: 'Mega Runner' };
+  var titleEl = document.getElementById('game-play-title');
+  if (titleEl) titleEl.textContent = titles[name] || 'Game';
+
+  var wraps = ['game-memory', 'pacman-wrap', 'invaders-wrap', 'megaman-wrap'];
+  wraps.forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; el.classList.remove('active'); }
+  });
+  var touches = ['pacman-touch', 'invaders-touch', 'megaman-touch'];
+  touches.forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  });
+
   if (name === 'memory') {
     document.getElementById('game-memory').style.display = 'block';
     initGame();
   } else if (name === 'pacman') {
-    document.getElementById('pacman-wrap').style.display = 'block';
+    var pw = document.getElementById('pacman-wrap');
+    if (pw) { pw.style.display = 'block'; pw.classList.add('active'); }
     var t = document.getElementById('pacman-touch'); if (t) t.classList.add('active');
     runPacMan();
   } else if (name === 'invaders') {
-    document.getElementById('invaders-wrap').style.display = 'block';
+    var iw = document.getElementById('invaders-wrap');
+    if (iw) { iw.style.display = 'block'; iw.classList.add('active'); }
     var t2 = document.getElementById('invaders-touch'); if (t2) t2.classList.add('active');
     runInvaders();
   } else if (name === 'megaman') {
-    document.getElementById('megaman-wrap').style.display = 'block';
+    var mw = document.getElementById('megaman-wrap');
+    if (mw) { mw.style.display = 'block'; mw.classList.add('active'); }
     var t3 = document.getElementById('megaman-touch'); if (t3) t3.classList.add('active');
     runMegaMan();
   }
@@ -5439,82 +5543,102 @@ function loadGame(name) {
 
 function initGame() {
   var grid = document.getElementById('memory-grid');
-  memFlipped=[]; memMatched=[]; memMoves=0; memPairs=0; memSeconds=0; memLocked=false;
+  if (!grid) return;
+  memFlipped = []; memMatched = []; memMoves = 0; memPairs = 0; memSeconds = 0; memLocked = false; memComboStreak = 0;
   clearInterval(memTimer);
   document.getElementById('game-moves').textContent = '0';
   document.getElementById('game-pairs').textContent = '0/8';
   document.getElementById('game-time').textContent = '0:00';
   document.getElementById('game-combo').textContent = '';
-  shuffled = [...MEM_CARDS, ...MEM_CARDS];
-  for (var i=shuffled.length-1; i>0; i--) {
-    var j = Math.floor(Math.random()*(i+1));
-    var tmp=shuffled[i]; shuffled[i]=shuffled[j]; shuffled[j]=tmp;
+  var winEl = document.getElementById('memory-win-overlay');
+  if (winEl) winEl.classList.remove('show');
+
+  // Pick 8 of 16 for the board
+  var pool = MEM_CARDS.slice();
+  for (var i = pool.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = pool[i]; pool[i] = pool[j]; pool[j] = tmp;
   }
-  grid.innerHTML = shuffled.map(function(p,i){
-    return '<div class="mem-card" data-name="'+p.name+'" onclick="flipCard(this,'+i+')">'+
-      '<div class="mem-card-inner">'+
-        '<div class="mem-card-front"></div>'+
-        '<div class="mem-card-back">'+
-          '<img src="'+p.img+'" alt="'+p.name+'" data-fallback="'+(p.fallback||'')+'" loading="eager" onerror="memImgError(this)">'+
-          '<div class="mem-name">'+p.name+'</div>'+
-        '</div>'+
+  var picks = pool.slice(0, 8);
+  shuffled = picks.concat(picks);
+  for (var i2 = shuffled.length - 1; i2 > 0; i2--) {
+    var j2 = Math.floor(Math.random() * (i2 + 1));
+    var t2 = shuffled[i2]; shuffled[i2] = shuffled[j2]; shuffled[j2] = t2;
+  }
+  grid.innerHTML = shuffled.map(function (p, idx) {
+    return '<div class="mem-card" data-name="' + p.name + '" style="animation-delay:' + (idx * 35) + 'ms" onclick="flipCard(this,' + idx + ')">' +
+      '<div class="mem-card-inner">' +
+        '<div class="mem-card-front"></div>' +
+        '<div class="mem-card-back" style="--orb:' + p.hue + '">' +
+          '<div class="mem-orb" style="--orb:' + p.hue + '"></div>' +
+          '<div class="mem-sil" style="--orb:' + p.hue + '"></div>' +
+          '<div class="mem-name">' + p.name + '</div>' +
+        '</div>' +
       '</div></div>';
   }).join('');
-  MEM_CARDS.forEach(function(mc){ var im=new Image(); im.src=mc.img; });
-  memTimer = setInterval(function(){
+  memTimer = setInterval(function () {
+    if (window._ctGamePaused) return;
     memSeconds++;
-    var m = Math.floor(memSeconds/60), s = memSeconds%60;
-    document.getElementById('game-time').textContent = m+':'+(s<10?'0':'')+s;
+    var m = Math.floor(memSeconds / 60), s = memSeconds % 60;
+    document.getElementById('game-time').textContent = m + ':' + (s < 10 ? '0' : '') + s;
   }, 1000);
 }
 
 function memImgError(img) {
-  if (img.dataset.fallback && img.src !== img.dataset.fallback) {
-    img.src = img.dataset.fallback;
-    img.dataset.fallback = '';
-    return;
-  }
-  var parent = img.parentNode;
-  var label = document.createElement('div');
-  label.style.cssText = 'color:#ffd700;font-size:14px;font-weight:700;text-align:center;padding:4px';
-  label.textContent = img.alt || '?';
-  parent.replaceChild(label, img);
+  // Offline orb path — keep graceful if any legacy <img> remains
+  if (!img) return;
+  try {
+    var parent = img.parentNode;
+    if (!parent) return;
+    var orb = document.createElement('div');
+    orb.className = 'mem-orb';
+    parent.replaceChild(orb, img);
+  } catch (e) {}
 }
 
 function flipCard(card, idx) {
+  if (window._ctGamePaused) return;
   if (memLocked || card.classList.contains('flipped') || card.classList.contains('matched')) return;
   card.classList.add('flipped');
-  memFlipped.push({card:card, idx:idx});
+  memFlipped.push({ card: card, idx: idx });
   if (memFlipped.length === 2) {
     memMoves++;
     document.getElementById('game-moves').textContent = memMoves;
     var a = memFlipped[0], b = memFlipped[1];
     if (a.card.getAttribute('data-name') === b.card.getAttribute('data-name')) {
       a.card.classList.add('matched'); b.card.classList.add('matched');
-      memMatched.push(a.idx, b.idx); memPairs++;
-      document.getElementById('game-pairs').textContent = memPairs+'/8';
+      memMatched.push(a.idx, b.idx); memPairs++; memComboStreak++;
+      document.getElementById('game-pairs').textContent = memPairs + '/8';
       memFlipped = [];
-      var msgs = ['Nice!','Great!','Awesome!','Incredible!','Perfect!'];
-      document.getElementById('game-combo').textContent = msgs[Math.min(memPairs-1, msgs.length-1)];
+      var msgs = ['Nice!', 'Great!', 'Awesome!', 'Incredible!', 'Perfect!', 'ON FIRE!'];
+      var combo = document.getElementById('game-combo');
+      if (combo) {
+        combo.textContent = msgs[Math.min(memComboStreak - 1, msgs.length - 1)];
+        combo.classList.remove('combo-pop');
+        void combo.offsetWidth;
+        combo.classList.add('combo-pop');
+      }
       if (memPairs === 8) {
         clearInterval(memTimer);
-        var mm = Math.floor(memSeconds/60), ss = memSeconds%60;
-        var winTime = mm+':'+(ss<10?'0':'')+ss;
-        document.getElementById('game-combo').textContent = 'YOU WIN! '+memMoves+' moves in '+winTime;
+        var mm = Math.floor(memSeconds / 60), ss = memSeconds % 60;
+        var winTime = mm + ':' + (ss < 10 ? '0' : '') + ss;
+        if (combo) combo.textContent = 'CLEARED · ' + memMoves + ' moves · ' + winTime;
+        ctSaveGameScore('memory', memMoves, true);
         var winEl = document.getElementById('memory-win-overlay');
         var wsm = document.getElementById('win-stat-moves');
         var wst = document.getElementById('win-stat-time');
-        if (wsm) wsm.textContent = memMoves+' moves';
+        if (wsm) wsm.textContent = memMoves + ' moves';
         if (wst) wst.textContent = winTime;
-        if (winEl) setTimeout(function(){ winEl.classList.add('show'); }, 400);
+        if (winEl) setTimeout(function () { winEl.classList.add('show'); }, 380);
       }
     } else {
+      memComboStreak = 0;
       memLocked = true;
-      setTimeout(function(){
+      setTimeout(function () {
         a.card.classList.remove('flipped');
         b.card.classList.remove('flipped');
         memFlipped = []; memLocked = false;
-      }, 700);
+      }, 680);
     }
   }
 }
@@ -5524,6 +5648,8 @@ function dismissWinAndRestart() {
   if (winEl) winEl.classList.remove('show');
   initGame();
 }
+
+try { document.addEventListener('DOMContentLoaded', function () { setTimeout(ctRefreshArcadeScores, 80); }); } catch (e) {}
 
 // PAC-MAN ------------------------------------------------
 function runPacMan() {
@@ -5604,7 +5730,8 @@ function runPacMan() {
 
   function onKey(e) {
     if (KEYDIR[e.key] !== undefined) { pac.nextDir=KEYDIR[e.key]; e.preventDefault(); }
-    if ((e.key===' '||e.key==='Enter') && (gameOver||win)) resetAll();
+    if (e.key==='p' || e.key==='P') { try { toggleGamePause(); } catch (err) {} e.preventDefault(); }
+    if ((e.key===' '||e.key==='Enter') && (gameOver||win)) { _pacScoreSaved=false; resetAll(); }
   }
   document.addEventListener('keydown', onKey);
 
@@ -5616,7 +5743,7 @@ function runPacMan() {
       g.px = g.home.c*CELL; g.py = g.home.r*CELL;
       g.dir = 0; g.scared=false; g.respawn=false; g.speed=1.85;
     });
-    invincible=0; powered=0; score=0; lives=3; level=1; frame=0; gameOver=false; win=false;
+    invincible=0; powered=0; score=0; lives=3; level=1; frame=0; gameOver=false; win=false; _pacScoreSaved=false; fxParticles=[];
   }
 
   function aligned(e){
@@ -5656,7 +5783,7 @@ function runPacMan() {
       }
       for (var i=powerPellets.length-1;i>=0;i--){
         if (powerPellets[i].r===cy && powerPellets[i].c===cx){
-          powerPellets.splice(i,1); score+=50; powered=360;
+          powerPellets.splice(i,1); score+=50; powered=360; burst(pac.px+CELL/2, pac.py+CELL/2, '#e879f9', 14);
           ghosts.forEach(function(g){ if(!g.respawn){ g.scared=true; g.dir=(g.dir+2)%4; } });
         }
       }
@@ -5799,36 +5926,87 @@ function runPacMan() {
     }
   }
 
-  function drawHUD() {
-    ctx.fillStyle='#fff'; ctx.font='bold 14px monospace';
-    ctx.fillText('SCORE '+score, 6, 14);
-    ctx.fillText('LEVEL '+level, W/2-28, 14);
-    ctx.fillText('LIVES '+lives, W-76, 14);
-    if (powered>0) { ctx.fillStyle='#ff80ff'; ctx.fillText('POWER!', W/2-22, H-6); }
-    if (gameOver || win) {
-      ctx.fillStyle='rgba(0,0,0,0.8)'; ctx.fillRect(0,0,W,H);
-      ctx.textAlign='center';
-      ctx.fillStyle = win ? '#00ff88' : '#ff3344'; ctx.font='bold 42px monospace';
-      ctx.fillText(win?'VICTORY!':'GAME OVER', W/2, H/2-30);
-      ctx.fillStyle='#fff'; ctx.font='20px monospace';
-      ctx.fillText('Score: '+score, W/2, H/2+10);
-      ctx.fillStyle='#aaa'; ctx.font='14px monospace';
-      ctx.fillText('Press SPACE or tap to restart', W/2, H/2+40);
-      ctx.textAlign='left';
+  var _pacScoreSaved = false;
+  var fxParticles = [];
+  function burst(x, y, color, n) {
+    for (var i = 0; i < (n || 10); i++) {
+      fxParticles.push({
+        x: x, y: y,
+        vx: (Math.random() - 0.5) * 4.5,
+        vy: (Math.random() - 0.5) * 4.5,
+        life: 1, color: color || '#ffd700', size: 2 + Math.random() * 2.5
+      });
     }
+  }
+  function drawHUD() {
+    ctx.save();
+    ctx.fillStyle = 'rgba(5,8,14,0.55)';
+    ctx.fillRect(0, 0, W, 28);
+    ctx.font = '700 13px "Plus Jakarta Sans", system-ui, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#e2e8f0';
+    ctx.shadowColor = 'rgba(59,130,246,0.55)'; ctx.shadowBlur = 8;
+    ctx.fillText('SCORE  ' + score, 10, 18);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillText('LV ' + level, W / 2, 18);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#fb7185';
+    ctx.fillText('♥ ' + lives, W - 10, 18);
+    ctx.shadowBlur = 0;
+    if (powered > 0) {
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#e879f9';
+      ctx.font = '800 12px "Plus Jakarta Sans", system-ui, sans-serif';
+      ctx.fillText('POWER ' + Math.ceil(powered / 60), W / 2, H - 8);
+    }
+    if (window._ctGamePaused && !gameOver && !win) {
+      ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(0, 0, W, H);
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#fff'; ctx.font = '800 28px "Plus Jakarta Sans", system-ui, sans-serif';
+      ctx.fillText('PAUSED', W / 2, H / 2);
+    }
+    if (gameOver || win) {
+      if (!_pacScoreSaved) { _pacScoreSaved = true; try { ctSaveGameScore('pacman', score, false); } catch (e) {} }
+      ctx.fillStyle = 'rgba(5,8,14,0.82)'; ctx.fillRect(0, 0, W, H);
+      ctx.textAlign = 'center';
+      ctx.fillStyle = win ? '#34d399' : '#fb7185';
+      ctx.font = '800 36px "Plus Jakarta Sans", system-ui, sans-serif';
+      ctx.fillText(win ? 'CLEARED' : 'GAME OVER', W / 2, H / 2 - 28);
+      ctx.fillStyle = '#f8fafc'; ctx.font = '700 18px "Plus Jakarta Sans", system-ui, sans-serif';
+      ctx.fillText('Score ' + score, W / 2, H / 2 + 6);
+      ctx.fillStyle = '#94a3b8'; ctx.font = '600 13px "Plus Jakarta Sans", system-ui, sans-serif';
+      ctx.fillText('Tap · Space · Restart', W / 2, H / 2 + 36);
+    }
+    ctx.restore();
   }
 
   function step() {
     frame++;
+    if (window._ctGamePaused && !gameOver && !win) {
+      drawMaze(); ghosts.forEach(drawGhost); drawPac(); drawHUD();
+      return;
+    }
     if (!gameOver && !win) {
       movePac();
       ghosts.forEach(moveGhost);
-      if (invincible>0) invincible--;
-      if (powered>0) { powered--; if (powered===0) ghosts.forEach(function(g){ g.scared=false; }); }
+      if (invincible > 0) invincible--;
+      if (powered > 0) { powered--; if (powered === 0) ghosts.forEach(function (g) { g.scared = false; }); }
+    }
+    for (var pi = fxParticles.length - 1; pi >= 0; pi--) {
+      var p = fxParticles[pi];
+      p.x += p.vx; p.y += p.vy; p.life -= 0.04;
+      if (p.life <= 0) fxParticles.splice(pi, 1);
     }
     drawMaze();
     ghosts.forEach(drawGhost);
     drawPac();
+    fxParticles.forEach(function (p) {
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(p.x, p.y, p.size, p.size);
+    });
+    ctx.globalAlpha = 1;
     drawHUD();
   }
 
@@ -5894,6 +6072,7 @@ function runInvaders() {
   var enemies = [], bullets = [], eBullets = [], particles = [];
   var gameOver = false, win = false;
   var lastShot = 0;
+  var _invScoreSaved = false;
   var keys = { left: false, right: false, fire: false };
   var touchTargetX = null;
 
@@ -5938,6 +6117,7 @@ function runInvaders() {
     if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') { keys.left = true; e.preventDefault(); }
     if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') { keys.right = true; e.preventDefault(); }
     if (e.key === ' ' || e.key === 'z' || e.key === 'Z') { keys.fire = true; fire(); e.preventDefault(); }
+    if (e.key === 'p' || e.key === 'P') { try { toggleGamePause(); } catch (err) {} e.preventDefault(); }
     if ((e.key === 'Enter' || e.key === ' ') && (gameOver || win)) { reset(); }
   }
   function offKey(e) {
@@ -5994,11 +6174,33 @@ function runInvaders() {
     right: function(down) { keys.right = down; },
     fire:  function(down) { keys.fire = down; if (down) fire(); }
   });
+  // Floating FIRE is outside #invaders-touch — bind it too
+  var fireBtnCleanup = (function () {
+    var btn = document.getElementById('invaders-fire-btn');
+    if (!btn) return function () {};
+    function down(e) { e.preventDefault(); btn.classList.add('pressed'); keys.fire = true; fire(); }
+    function up(e) { if (e) e.preventDefault(); btn.classList.remove('pressed'); keys.fire = false; }
+    btn.addEventListener('touchstart', down, { passive: false });
+    btn.addEventListener('touchend', up, { passive: false });
+    btn.addEventListener('touchcancel', up, { passive: false });
+    btn.addEventListener('mousedown', down);
+    btn.addEventListener('mouseup', up);
+    btn.addEventListener('mouseleave', up);
+    return function () {
+      btn.removeEventListener('touchstart', down);
+      btn.removeEventListener('touchend', up);
+      btn.removeEventListener('touchcancel', up);
+      btn.removeEventListener('mousedown', down);
+      btn.removeEventListener('mouseup', up);
+      btn.removeEventListener('mouseleave', up);
+      keys.fire = false;
+    };
+  })();
 
   function reset() {
     PX = W/2; PY = H - 70; lives = 3; score = 0; wave = 1; frame = 0;
     bullets = []; eBullets = []; particles = [];
-    gameOver = false; win = false;
+    gameOver = false; win = false; _invScoreSaved = false;
     spawnWave();
   }
 
@@ -6013,6 +6215,7 @@ function runInvaders() {
     canvas.removeEventListener('touchend', canvasTouchEnd);
     canvas.removeEventListener('touchcancel', canvasTouchEnd);
     try { touchCleanup(); } catch(e){}
+    try { fireBtnCleanup(); } catch(e){}
   };
 
   function update() {
@@ -6201,26 +6404,36 @@ function runInvaders() {
     ctx.globalAlpha = 1;
 
     // HUD
-    ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.fillRect(0, 0, W, 34);
-    ctx.font = 'bold 16px monospace';
+    ctx.fillStyle = 'rgba(5,8,14,0.55)'; ctx.fillRect(0, 0, W, 36);
+    ctx.font = '700 14px "Plus Jakarta Sans", system-ui, sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillStyle = '#00ff44'; ctx.fillText('SCORE ' + score, 10, 22);
-    ctx.textAlign = 'center'; ctx.fillStyle = '#ffff44'; ctx.fillText('WAVE ' + wave, W/2, 22);
-    ctx.textAlign = 'right'; ctx.fillStyle = '#ff4444'; ctx.fillText('LIVES ' + lives, W - 10, 22);
+    ctx.shadowColor = 'rgba(52,211,153,0.5)'; ctx.shadowBlur = 8;
+    ctx.fillStyle = '#34d399'; ctx.fillText('SCORE  ' + score, 12, 23);
+    ctx.textAlign = 'center'; ctx.fillStyle = '#fbbf24'; ctx.fillText('WAVE ' + wave, W/2, 23);
+    ctx.textAlign = 'right'; ctx.fillStyle = '#fb7185'; ctx.fillText('♥ ' + lives, W - 12, 23);
+    ctx.shadowBlur = 0;
+
+    if (window._ctGamePaused && !gameOver) {
+      ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(0, 0, W, H);
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#fff'; ctx.font = '800 28px "Plus Jakarta Sans", system-ui, sans-serif';
+      ctx.fillText('PAUSED', W / 2, H / 2);
+    }
 
     if (gameOver) {
-      ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(0, 0, W, H);
-      ctx.fillStyle = '#ff2222'; ctx.font = 'bold 44px monospace';
-      ctx.textAlign = 'center'; ctx.fillText('GAME OVER', W/2, H/2 - 20);
-      ctx.fillStyle = '#fff'; ctx.font = '20px monospace';
-      ctx.fillText('Score: ' + score + '  Wave: ' + wave, W/2, H/2 + 20);
-      ctx.fillStyle = '#aaa'; ctx.font = '14px monospace';
-      ctx.fillText('Tap or press Enter to restart', W/2, H/2 + 55);
+      if (!_invScoreSaved) { _invScoreSaved = true; try { ctSaveGameScore('invaders', score, false); } catch (e) {} }
+      ctx.fillStyle = 'rgba(5,8,14,0.82)'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#fb7185'; ctx.font = '800 36px "Plus Jakarta Sans", system-ui, sans-serif';
+      ctx.textAlign = 'center'; ctx.fillText('GAME OVER', W/2, H/2 - 24);
+      ctx.fillStyle = '#f8fafc'; ctx.font = '700 17px "Plus Jakarta Sans", system-ui, sans-serif';
+      ctx.fillText('Score ' + score + '  ·  Wave ' + wave, W/2, H/2 + 12);
+      ctx.fillStyle = '#94a3b8'; ctx.font = '600 13px "Plus Jakarta Sans", system-ui, sans-serif';
+      ctx.fillText('Tap · Enter · Restart', W/2, H/2 + 44);
     }
   }
 
   function loop() {
-    update();
+    if (!(window._ctGamePaused && !gameOver)) update();
     draw();
     window._invadersRaf = requestAnimationFrame(loop);
   }
@@ -6448,8 +6661,9 @@ function runMegaMan() {
     }
   }
   function onKey(e){
+    if (e.key==='p'||e.key==='P'){ try{toggleGamePause();}catch(err){} e.preventDefault(); return; }
     if (gameOver || win) {
-      if (e.key===' '||e.key==='Enter') reset();
+      if (e.key===' '||e.key==='Enter'){ _mmScoreSaved=false; reset(); }
       return;
     }
     if (e.key==='ArrowLeft'||e.key==='a'||e.key==='A'){ keys.left=true; e.preventDefault(); }
@@ -7117,41 +7331,54 @@ function runMegaMan() {
     ctx.globalAlpha = 1;
   }
 
+  var _mmScoreSaved = false;
   function drawHUD(){
-    // HP
-    ctx.fillStyle='#000c'; ctx.fillRect(6,6,120,14);
-    ctx.fillStyle='#fff'; ctx.font='bold 10px monospace';
-    ctx.fillText('E', 10, 16);
+    ctx.save();
+    ctx.fillStyle='rgba(5,8,14,0.55)'; ctx.fillRect(0,0,W,30);
+    ctx.fillStyle='#94a3b8'; ctx.font='700 11px "Plus Jakarta Sans", system-ui, sans-serif';
+    ctx.fillText('HP', 10, 19);
     for (var i=0;i<player.maxHp;i++){
-      ctx.fillStyle = i<player.hp ? '#33ff88' : '#222';
-      ctx.fillRect(20+i*8, 9, 6, 8);
+      ctx.fillStyle = i<player.hp ? '#34d399' : '#1e293b';
+      ctx.shadowColor = i<player.hp ? 'rgba(52,211,153,0.55)' : 'transparent';
+      ctx.shadowBlur = i<player.hp ? 6 : 0;
+      ctx.fillRect(28+i*10, 10, 8, 10);
     }
-    // Score
-    ctx.fillStyle='#fff'; ctx.font='bold 12px monospace';
-    ctx.fillText('SCORE '+score, W-110, 16);
-    ctx.fillText('STAGE '+(levelIdx+1)+'-'+(Math.min(wave+1, LEVELS[levelIdx].waves.length+1)), W/2-36, 16);
-    // Banner
+    ctx.shadowBlur = 0;
+    ctx.fillStyle='#e2e8f0'; ctx.font='700 12px "Plus Jakarta Sans", system-ui, sans-serif';
+    ctx.textAlign='right';
+    ctx.fillText('SCORE  '+score, W-12, 19);
+    ctx.textAlign='center';
+    ctx.fillStyle='#38bdf8';
+    ctx.fillText('STAGE '+(levelIdx+1)+'-'+(Math.min(wave+1, LEVELS[levelIdx].waves.length+1)), W/2, 19);
+    ctx.textAlign='left';
     if (bannerTime>0){
       bannerTime--;
       var alpha = bannerTime>20 ? 1 : bannerTime/20;
       ctx.fillStyle = 'rgba(0,0,0,'+0.6*alpha+')'; ctx.fillRect(0,H/2-22,W,44);
-      ctx.textAlign='center'; ctx.fillStyle='rgba(255,238,51,'+alpha+')';
-      ctx.font='bold 22px monospace';
+      ctx.textAlign='center'; ctx.fillStyle='rgba(56,189,248,'+alpha+')';
+      ctx.font='800 20px "Plus Jakarta Sans", system-ui, sans-serif';
       ctx.fillText(bannerText, W/2, H/2+6);
       ctx.textAlign='left';
     }
-    // Game over / win
-    if (gameOver || win){
-      ctx.fillStyle='rgba(0,0,0,0.8)'; ctx.fillRect(0,0,W,H);
+    if (window._ctGamePaused && !gameOver && !win) {
+      ctx.fillStyle='rgba(0,0,0,0.45)'; ctx.fillRect(0,0,W,H);
       ctx.textAlign='center';
-      ctx.fillStyle = win?'#00ff88':'#ff3344'; ctx.font='bold 38px monospace';
-      ctx.fillText(win?'YOU BEAT WILY!':'GAME OVER', W/2, H/2-10);
-      ctx.fillStyle='#fff'; ctx.font='16px monospace';
-      ctx.fillText('Score: '+score, W/2, H/2+18);
-      ctx.fillStyle='#aaa'; ctx.font='12px monospace';
-      ctx.fillText('Press SPACE or tap canvas to restart', W/2, H/2+40);
+      ctx.fillStyle='#fff'; ctx.font='800 28px "Plus Jakarta Sans", system-ui, sans-serif';
+      ctx.fillText('PAUSED', W/2, H/2);
+    }
+    if (gameOver || win){
+      if (!_mmScoreSaved) { _mmScoreSaved = true; try { ctSaveGameScore('megaman', score, false); } catch (e) {} }
+      ctx.fillStyle='rgba(5,8,14,0.82)'; ctx.fillRect(0,0,W,H);
+      ctx.textAlign='center';
+      ctx.fillStyle = win?'#34d399':'#fb7185'; ctx.font='800 32px "Plus Jakarta Sans", system-ui, sans-serif';
+      ctx.fillText(win?'RUN CLEARED':'GAME OVER', W/2, H/2-10);
+      ctx.fillStyle='#f8fafc'; ctx.font='700 16px "Plus Jakarta Sans", system-ui, sans-serif';
+      ctx.fillText('Score '+score, W/2, H/2+18);
+      ctx.fillStyle='#94a3b8'; ctx.font='600 12px "Plus Jakarta Sans", system-ui, sans-serif';
+      ctx.fillText('Space / tap to restart', W/2, H/2+40);
       ctx.textAlign='left';
     }
+    ctx.restore();
   }
 
   // ---------- Pixel Art Sprite System ----------
@@ -7574,6 +7801,13 @@ function runMegaMan() {
     // Decay effects
     if (screenShake > 0) screenShake *= 0.85;
     if (muzzleFlash > 0) muzzleFlash = Math.max(0, muzzleFlash - 1);
+    if (window._ctGamePaused && !gameOver && !win) {
+      drawBG(); drawGroundDetails(); drawPlatforms(); drawPickups();
+      enemies.forEach(drawEnemy); drawBoss(); bullets.forEach(drawBullet);
+      drawMegaMan(); drawParticles(); drawHUD();
+      raf = requestAnimationFrame(step);
+      return;
+    }
     if (!gameOver && !win){
       updatePlayer(); updateEnemies(); updateBoss(); updateBullets();
       updatePickups(); updateEnemyCollision(); updateParticles();
@@ -8045,25 +8279,55 @@ function closeSheet(id) {
   }
 }
 function toggleMoreMenu(ev) {
-  try { if (ev && ev.stopPropagation) ev.stopPropagation(); } catch (e) {}
+  try {
+    if (ev) {
+      if (ev.preventDefault) ev.preventDefault();
+      if (ev.stopPropagation) ev.stopPropagation();
+    }
+  } catch (e) {}
   var m = $('more-menu');
   var bd = $('more-menu-backdrop');
   if (!m) return;
-  var open = !m.classList.contains('open');
-  m.classList.toggle('open', open);
-  if (bd) bd.classList.toggle('open', open);
+  var willOpen = !m.classList.contains('open');
+  if (!willOpen) {
+    closeMoreMenu();
+    return;
+  }
+  // Defer open so the same-tick document click / pointerup cannot instantly close
+  window._ctMoreOpening = true;
+  requestAnimationFrame(function () {
+    m.classList.add('open');
+    if (bd) bd.classList.add('open');
+    try { document.body.classList.add('more-open'); } catch (e2) {}
+    document.querySelectorAll('#btn-more, .bnav-item[data-tab="more"]').forEach(function (b) {
+      try { b.setAttribute('aria-expanded', 'true'); } catch (e3) {}
+    });
+    setTimeout(function () { window._ctMoreOpening = false; }, 0);
+  });
 }
-document.addEventListener('click', function (e) {
-  var m = $('more-menu');
-  if (!m || !m.classList.contains('open')) return;
-  if (e.target.closest && (
+function _ctMoreIgnoreCloser(e) {
+  if (!e || !e.target || !e.target.closest) return false;
+  return !!(
     e.target.closest('#more-menu') ||
     e.target.closest('#btn-more') ||
     e.target.closest('.bnav-item[data-tab="more"]') ||
     e.target.closest('#more-menu-backdrop')
-  )) return;
+  );
+}
+document.addEventListener('click', function (e) {
+  if (window._ctMoreOpening) return;
+  var m = $('more-menu');
+  if (!m || !m.classList.contains('open')) return;
+  if (_ctMoreIgnoreCloser(e)) return;
   closeMoreMenu();
 });
+document.addEventListener('pointerup', function (e) {
+  if (window._ctMoreOpening) return;
+  var m = $('more-menu');
+  if (!m || !m.classList.contains('open')) return;
+  // Backdrop already has onclick=closeMoreMenu; ignore chrome taps
+  if (_ctMoreIgnoreCloser(e)) return;
+}, true);
 
 var CT_SCHEMES = [
   { id:'graphite', name:'Graphite', hint:'Cool gray + electric blue', sw:['#0B0F14','#3B82F6','#38BDF8'] },
