@@ -140,7 +140,7 @@
     </button>
     <button class="hdr-btn icon-only admin-only" id="btn-theme" type="button" onclick="toggleTheme()" title="Toggle theme" aria-label="Theme"><span data-ico-inline="theme"></span></button>
     <button class="hdr-btn icon-only admin-only" type="button" onclick="backupJSON()" title="Backup books as JSON" aria-label="Backup"><span data-ico-inline="backup"></span></button>
-    <button class="hdr-btn admin-only" id="btn-more" type="button" onclick="toggleMoreMenu()">More</button>
+    <button class="hdr-btn admin-only" id="btn-more" type="button" onclick="toggleMoreMenu(event)">More</button>
     <div class="more-menu-backdrop" id="more-menu-backdrop" onclick="closeMoreMenu()"></div>
     <div class="more-menu" id="more-menu" role="menu" aria-label="More">
       <button type="button" role="menuitem" onclick="closeMoreMenu();switchTab('shop')">Settings</button>
@@ -1947,7 +1947,7 @@
     <span class="bnav-ico" aria-hidden="true" data-ico="inventory"></span>
     <span class="bnav-label">Catalog</span>
   </button>
-  <button type="button" class="bnav-item" data-tab="more" onclick="toggleMoreMenu()">
+  <button type="button" class="bnav-item" data-tab="more" onclick="toggleMoreMenu(event)">
     <span class="bnav-ico" aria-hidden="true" data-ico="more"></span>
     <span class="bnav-label">More</span>
   </button>

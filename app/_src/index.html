@@ -3928,7 +3928,7 @@ html.theme-light {
     </button>
     <button class="hdr-btn icon-only admin-only" id="btn-theme" type="button" onclick="toggleTheme()" title="Toggle theme" aria-label="Theme"><span data-ico-inline="theme"></span></button>
     <button class="hdr-btn icon-only admin-only" type="button" onclick="backupJSON()" title="Backup books as JSON" aria-label="Backup"><span data-ico-inline="backup"></span></button>
-    <button class="hdr-btn admin-only" id="btn-more" type="button" onclick="toggleMoreMenu()">More</button>
+    <button class="hdr-btn admin-only" id="btn-more" type="button" onclick="toggleMoreMenu(event)">More</button>
     <div class="more-menu-backdrop" id="more-menu-backdrop" onclick="closeMoreMenu()"></div>
     <div class="more-menu" id="more-menu" role="menu" aria-label="More">
       <button type="button" role="menuitem" onclick="closeMoreMenu();switchTab('shop')">Settings</button>
@@ -5735,7 +5735,7 @@ html.theme-light {
     <span class="bnav-ico" aria-hidden="true" data-ico="inventory"></span>
     <span class="bnav-label">Catalog</span>
   </button>
-  <button type="button" class="bnav-item" data-tab="more" onclick="toggleMoreMenu()">
+  <button type="button" class="bnav-item" data-tab="more" onclick="toggleMoreMenu(event)">
     <span class="bnav-ico" aria-hidden="true" data-ico="more"></span>
     <span class="bnav-label">More</span>
   </button>
@@ -13777,7 +13777,8 @@ function closeSheet(id) {
     el.style.display = 'none';
   }
 }
-function toggleMoreMenu() {
+function toggleMoreMenu(ev) {
+  try { if (ev && ev.stopPropagation) ev.stopPropagation(); } catch (e) {}
   var m = $('more-menu');
   var bd = $('more-menu-backdrop');
   if (!m) return;
@@ -13788,7 +13789,12 @@ function toggleMoreMenu() {
 document.addEventListener('click', function (e) {
   var m = $('more-menu');
   if (!m || !m.classList.contains('open')) return;
-  if (e.target.closest && (e.target.closest('#more-menu') || e.target.closest('#btn-more') || e.target.closest('#more-menu-backdrop'))) return;
+  if (e.target.closest && (
+    e.target.closest('#more-menu') ||
+    e.target.closest('#btn-more') ||
+    e.target.closest('.bnav-item[data-tab="more"]') ||
+    e.target.closest('#more-menu-backdrop')
+  )) return;
   closeMoreMenu();
 });
 

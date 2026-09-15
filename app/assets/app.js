@@ -8044,7 +8044,8 @@ function closeSheet(id) {
     el.style.display = 'none';
   }
 }
-function toggleMoreMenu() {
+function toggleMoreMenu(ev) {
+  try { if (ev && ev.stopPropagation) ev.stopPropagation(); } catch (e) {}
   var m = $('more-menu');
   var bd = $('more-menu-backdrop');
   if (!m) return;
@@ -8055,7 +8056,12 @@ function toggleMoreMenu() {
 document.addEventListener('click', function (e) {
   var m = $('more-menu');
   if (!m || !m.classList.contains('open')) return;
-  if (e.target.closest && (e.target.closest('#more-menu') || e.target.closest('#btn-more') || e.target.closest('#more-menu-backdrop'))) return;
+  if (e.target.closest && (
+    e.target.closest('#more-menu') ||
+    e.target.closest('#btn-more') ||
+    e.target.closest('.bnav-item[data-tab="more"]') ||
+    e.target.closest('#more-menu-backdrop')
+  )) return;
   closeMoreMenu();
 });
 
