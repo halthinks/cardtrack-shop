@@ -3463,3 +3463,290 @@ html.theme-light {
   --shadow-lg: 0 16px 40px rgba(15,23,42,0.12);
 }
 
+
+/* ========== MOTION polish v1 — CSS-first; respect reduced-motion ========== */
+:root {
+  --ct-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ct-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ct-dur-fast: 140ms;
+  --ct-dur: 200ms;
+  --ct-dur-sheet: 240ms;
+}
+
+/* 1) Tab / screen enter: brief fade + 10px slide */
+.section.active {
+  animation: ctTabIn var(--ct-dur) var(--ct-ease-out) both;
+}
+@keyframes ctTabIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* 2) Bottom nav / rail active pill */
+.bnav-item {
+  transition: color var(--ct-dur-fast) var(--ct-ease),
+              background var(--ct-dur) var(--ct-ease),
+              box-shadow var(--ct-dur) var(--ct-ease),
+              transform var(--ct-dur-fast) var(--ct-ease) !important;
+}
+.bnav-item:active { transform: scale(0.96); }
+.bnav-item.active {
+  transition: color var(--ct-dur-fast) var(--ct-ease),
+              background var(--ct-dur) var(--ct-ease),
+              box-shadow var(--ct-dur) var(--ct-ease) !important;
+}
+.bnav-ico {
+  transition: color var(--ct-dur-fast) var(--ct-ease), transform var(--ct-dur-fast) var(--ct-ease);
+}
+.bnav-item.active .bnav-ico { transform: translateY(-0.5px); }
+.ent-rail .rail-item {
+  transition: background var(--ct-dur) var(--ct-ease),
+              color var(--ct-dur-fast) var(--ct-ease),
+              box-shadow var(--ct-dur) var(--ct-ease),
+              transform var(--ct-dur-fast) var(--ct-ease) !important;
+}
+.ent-rail .rail-item:active { transform: scale(0.97); }
+
+/* 3) Home KPI / quick-action tiles */
+.home-kpi {
+  transition: transform var(--ct-dur-fast) var(--ct-ease),
+              box-shadow var(--ct-dur) var(--ct-ease),
+              border-color var(--ct-dur) var(--ct-ease);
+}
+.home-kpi:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+.home-kpi:active { transform: scale(0.98); }
+#sec-home.active .home-kpi {
+  animation: ctTileReveal 0.32s var(--ct-ease-out) both;
+}
+#sec-home.active .home-kpi:nth-child(1) { animation-delay: 20ms; }
+#sec-home.active .home-kpi:nth-child(2) { animation-delay: 45ms; }
+#sec-home.active .home-kpi:nth-child(3) { animation-delay: 70ms; }
+#sec-home.active .home-kpi:nth-child(4) { animation-delay: 95ms; }
+.home-qa {
+  transition: border-color var(--ct-dur) var(--ct-ease),
+              background var(--ct-dur) var(--ct-ease),
+              box-shadow var(--ct-dur) var(--ct-ease),
+              transform var(--ct-dur-fast) var(--ct-ease) !important;
+}
+.home-qa:hover {
+  transform: translateY(-1px);
+}
+.home-qa:active { transform: scale(0.98) !important; }
+#sec-home.active .home-qa {
+  animation: ctTileReveal 0.3s var(--ct-ease-out) both;
+}
+#sec-home.active .home-qa:nth-child(1) { animation-delay: 60ms; }
+#sec-home.active .home-qa:nth-child(2) { animation-delay: 85ms; }
+#sec-home.active .home-qa:nth-child(3) { animation-delay: 110ms; }
+#sec-home.active .home-qa:nth-child(4) { animation-delay: 135ms; }
+#sec-home.active .home-qa:nth-child(5) { animation-delay: 160ms; }
+@keyframes ctTileReveal {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* 4) Settings chips + panel fade */
+.settings-nav-item {
+  transition: border-color var(--ct-dur) var(--ct-ease),
+              background var(--ct-dur) var(--ct-ease),
+              color var(--ct-dur-fast) var(--ct-ease),
+              box-shadow var(--ct-dur) var(--ct-ease),
+              transform var(--ct-dur-fast) var(--ct-ease) !important;
+}
+.settings-nav-item:active { transform: scale(0.97); }
+.settings-nav-item.active {
+  transition: border-color var(--ct-dur) var(--ct-ease),
+              background var(--ct-dur) var(--ct-ease),
+              color var(--ct-dur-fast) var(--ct-ease),
+              box-shadow var(--ct-dur) var(--ct-ease) !important;
+}
+.settings-group.active {
+  animation: ctPanelIn var(--ct-dur) var(--ct-ease-out) both;
+}
+@keyframes ctPanelIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+.scheme-chip, .toggle-btn, .chip, .cat-chip {
+  transition: border-color var(--ct-dur-fast) var(--ct-ease),
+              background var(--ct-dur-fast) var(--ct-ease),
+              color var(--ct-dur-fast) var(--ct-ease),
+              box-shadow var(--ct-dur-fast) var(--ct-ease),
+              transform var(--ct-dur-fast) var(--ct-ease);
+}
+.scheme-chip:active, .toggle-btn:active, .chip:active, .cat-chip:active {
+  transform: scale(0.97);
+}
+
+/* 5) Modals / sheets / QR — backdrop fade + panel motion */
+@keyframes ctFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ctFadeOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes ctSheetInX {
+  from { opacity: 0.72; transform: translateX(14px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes ctSheetOutX {
+  from { opacity: 1; transform: none; }
+  to   { opacity: 0; transform: translateX(14px); }
+}
+@keyframes ctSheetInY {
+  from { opacity: 0.72; transform: translateY(16px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes ctSheetOutY {
+  from { opacity: 1; transform: none; }
+  to   { opacity: 0; transform: translateY(18px); }
+}
+@keyframes ctModalIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes ctModalOut {
+  from { opacity: 1; transform: none; }
+  to   { opacity: 0; transform: translateY(10px) scale(0.985); }
+}
+
+.ent-sheet.open .ent-sheet-backdrop {
+  animation: ctFadeIn var(--ct-dur) ease-out both;
+}
+.ent-sheet.open .ent-sheet-panel {
+  animation: ctSheetInX var(--ct-dur-sheet) var(--ct-ease-out) both;
+}
+.ent-sheet.open.ct-closing .ent-sheet-backdrop {
+  animation: ctFadeOut 180ms ease-in forwards;
+}
+.ent-sheet.open.ct-closing .ent-sheet-panel {
+  animation: ctSheetOutX 200ms ease-in forwards;
+}
+@media (max-width: 899px) {
+  .ent-sheet.open .ent-sheet-panel {
+    animation: ctSheetInY var(--ct-dur-sheet) var(--ct-ease-out) both;
+  }
+  .ent-sheet.open.ct-closing .ent-sheet-panel {
+    animation: ctSheetOutY 200ms ease-in forwards;
+  }
+}
+
+.sheet.open, .modal-overlay.open {
+  animation: ctFadeIn var(--ct-dur) ease-out both;
+}
+.sheet.open > .sheet-box,
+.sheet.open > .qr-modal-box,
+.sheet.open .qr-modal-box,
+.modal-overlay.open > .modal-box,
+.modal-overlay.open .modal-box {
+  animation: ctModalIn var(--ct-dur-sheet) var(--ct-ease-out) both;
+}
+.sheet.open.ct-closing, .modal-overlay.open.ct-closing {
+  animation: ctFadeOut 180ms ease-in forwards;
+}
+.sheet.open.ct-closing > .sheet-box,
+.sheet.open.ct-closing > .qr-modal-box,
+.sheet.open.ct-closing .qr-modal-box,
+.modal-overlay.open.ct-closing > .modal-box,
+.modal-overlay.open.ct-closing .modal-box {
+  animation: ctModalOut 200ms ease-in forwards;
+}
+#sheet-customer-qr.sheet.open .qr-modal-box {
+  animation: ctModalIn var(--ct-dur-sheet) var(--ct-ease-out) both;
+}
+
+/* 6) Register grid tiles — press feedback (no continuous shimmer) */
+.qk-tile {
+  transition: border-color var(--ct-dur-fast) var(--ct-ease),
+              background var(--ct-dur-fast) var(--ct-ease),
+              box-shadow var(--ct-dur) var(--ct-ease),
+              transform 100ms var(--ct-ease) !important;
+}
+.qk-tile:hover {
+  transform: translateY(-1px);
+}
+.qk-tile:active {
+  transform: scale(0.98) !important;
+  box-shadow: var(--shadow-sm);
+}
+
+/* 7) Buttons / Charge / toast */
+.btn, .btn-primary, .btn-secondary, .btn-ghost, .btn-charge,
+.meet-checkout-bar .btn, #meet-bar-pay, #btn-charge {
+  transition: transform 100ms var(--ct-ease),
+              box-shadow var(--ct-dur-fast) var(--ct-ease),
+              background var(--ct-dur-fast) var(--ct-ease),
+              border-color var(--ct-dur-fast) var(--ct-ease),
+              opacity var(--ct-dur-fast) var(--ct-ease),
+              filter var(--ct-dur-fast) var(--ct-ease);
+}
+.btn:active, .btn-primary:active, .btn-secondary:active, .btn-ghost:active,
+.btn-charge:active:not(:disabled),
+.meet-checkout-bar .btn:active:not(:disabled),
+#meet-bar-pay:active:not(:disabled),
+#btn-charge:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.toast {
+  transition: opacity var(--ct-dur) var(--ct-ease),
+              transform var(--ct-dur) var(--ct-ease-out) !important;
+  transform: translateX(-50%) translateY(8px);
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.toast.ok {
+  box-shadow: var(--shadow-md), 0 0 0 1px color-mix(in srgb, var(--green) 35%, transparent);
+}
+.toast.err {
+  box-shadow: var(--shadow-md), 0 0 0 1px color-mix(in srgb, var(--red) 35%, transparent);
+}
+
+/* 8) Onboarding — enter / exit (keep .show until exit finishes) */
+#ct-onboard.show {
+  animation: ctFadeIn 220ms ease-out both;
+}
+#ct-onboard.show .ob-card {
+  animation: ctModalIn 260ms var(--ct-ease-out) both;
+}
+#ct-onboard.show.ct-closing {
+  animation: ctFadeOut 200ms ease-in forwards;
+  pointer-events: none;
+}
+#ct-onboard.show.ct-closing .ob-card {
+  animation: ctModalOut 200ms ease-in forwards;
+}
+
+/* Reduced motion: near-instant / disabled */
+@media (prefers-reduced-motion: reduce) {
+  .section.active,
+  .settings-group.active,
+  #sec-home.active .home-kpi,
+  #sec-home.active .home-qa,
+  .ent-sheet.open .ent-sheet-backdrop,
+  .ent-sheet.open .ent-sheet-panel,
+  .ent-sheet.open.ct-closing .ent-sheet-backdrop,
+  .ent-sheet.open.ct-closing .ent-sheet-panel,
+  .sheet.open, .modal-overlay.open,
+  .sheet.open > .sheet-box, .sheet.open > .qr-modal-box, .sheet.open .qr-modal-box,
+  .modal-overlay.open > .modal-box, .modal-overlay.open .modal-box,
+  .sheet.open.ct-closing, .modal-overlay.open.ct-closing,
+  #sheet-customer-qr.sheet.open .qr-modal-box,
+  #ct-onboard.show, #ct-onboard.show .ob-card,
+  #ct-onboard.show.ct-closing, #ct-onboard.show.ct-closing .ob-card {
+    animation: none !important;
+  }
+  .bnav-item, .ent-rail .rail-item, .home-kpi, .home-qa, .settings-nav-item,
+  .qk-tile, .btn, .btn-primary, .btn-secondary, .btn-ghost, .btn-charge,
+  .meet-checkout-bar .btn, #meet-bar-pay, #btn-charge, .toast,
+  .scheme-chip, .toggle-btn, .chip, .cat-chip {
+    transition-duration: 0.01ms !important;
+  }
+  .home-kpi:hover, .home-qa:hover, .qk-tile:hover,
+  .bnav-item:active, .ent-rail .rail-item:active,
+  .home-kpi:active, .home-qa:active, .qk-tile:active,
+  .btn:active, .btn-primary:active {
+    transform: none !important;
+  }
+}
+

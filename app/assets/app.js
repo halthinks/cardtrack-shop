@@ -7978,7 +7978,15 @@ function openSheet(id) {
 }
 function closeSheet(id) {
   var el = $(id);
-  if (el) { el.classList.remove('open'); el.style.display = 'none'; }
+  if (!el) return;
+  if (typeof window.__ctAnimateClose === 'function' && (el.classList.contains('open') || (el.style && el.style.display === 'flex'))) {
+    el.classList.add('open');
+    window.__ctAnimateClose(el, false);
+    setTimeout(function () { try { el.style.display = 'none'; } catch (e) {} }, 280);
+  } else {
+    el.classList.remove('open', 'ct-closing');
+    el.style.display = 'none';
+  }
 }
 function toggleMoreMenu() {
   var m = $('more-menu');
@@ -10521,7 +10529,12 @@ function openEntSheet(id) {
 }
 function closeEntSheet(id) {
   var el = $(id);
-  if (el) el.classList.remove('open');
+  if (!el) return;
+  if (typeof window.__ctAnimateClose === 'function' && el.classList.contains('open')) {
+    window.__ctAnimateClose(el, false);
+  } else {
+    el.classList.remove('open', 'ct-closing');
+  }
 }
 function openCartSheet() {
   document.body.classList.add('cart-sheet-open');
@@ -11053,15 +11066,36 @@ window.ctShowSettingsGroup = function ctShowSettingsGroup(key) {
   window.ctHideOnboarding = function () {
     var el = $('ct-onboard');
     document.body.classList.remove('onboarding');
-    if (el) {
-      el.classList.remove('show');
-      el.setAttribute('aria-hidden', 'true');
+    function unlockApp() {
+      /* Belt-and-suspenders: never leave #ent-app untappable */
+      try {
+        var app = $('ent-app');
+        if (app) { app.style.pointerEvents = ''; app.style.visibility = ''; }
+      } catch (e) {}
     }
-    /* Belt-and-suspenders: never leave #ent-app untappable */
-    try {
-      var app = $('ent-app');
-      if (app) { app.style.pointerEvents = ''; app.style.visibility = ''; }
-    } catch (e) {}
+    if (el && el.classList.contains('show') && typeof window.__ctAnimateClose === 'function' && !window.__ctMotionReduce()) {
+      var done = false;
+      function finish() {
+        if (done) return; done = true;
+        el.classList.remove('show', 'ct-closing');
+        el.setAttribute('aria-hidden', 'true');
+        el.removeEventListener('animationend', onEnd);
+        unlockApp();
+      }
+      function onEnd(ev) {
+        if (!ev || !el.contains(ev.target)) return;
+        finish();
+      }
+      el.classList.add('ct-closing');
+      el.addEventListener('animationend', onEnd);
+      setTimeout(finish, 280);
+    } else if (el) {
+      el.classList.remove('show', 'ct-closing');
+      el.setAttribute('aria-hidden', 'true');
+      unlockApp();
+    } else {
+      unlockApp();
+    }
   };
 
   window.ctOnboardNext = function () {
