@@ -10519,6 +10519,37 @@ function addFromItemSheet() {
   else go();
 })();
 
+
+/* MOTION polish: animated dismiss helpers (no business-logic changes) */
+window.__ctMotionReduce = function () {
+  try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; }
+};
+window.__ctAnimateClose = function (el, removeShow) {
+  if (!el) return;
+  var useShow = !!removeShow;
+  var openCls = useShow ? 'show' : 'open';
+  if (!el.classList.contains(openCls) || el.classList.contains('ct-closing')) return;
+  if (window.__ctMotionReduce()) {
+    el.classList.remove(openCls, 'ct-closing');
+    if (useShow) el.setAttribute('aria-hidden', 'true');
+    return;
+  }
+  el.classList.add('ct-closing');
+  var done = false;
+  function finish() {
+    if (done) return; done = true;
+    el.classList.remove(openCls, 'ct-closing');
+    if (useShow) el.setAttribute('aria-hidden', 'true');
+    el.removeEventListener('animationend', onEnd);
+  }
+  function onEnd(ev) {
+    if (!ev || !el.contains(ev.target)) return;
+    finish();
+  }
+  el.addEventListener('animationend', onEnd);
+  setTimeout(finish, 280);
+};
+
 function openEntSheet(id) {
   var el = $(id);
   if (!el) return;
