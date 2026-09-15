@@ -907,7 +907,7 @@ html.theme-light .ebay-card-img { background: #fff; }
 }
 
 .mem-card {
-  aspect-ratio: 3/4; perspective: 900px; cursor: pointer;
+  aspect-ratio: 2.5 / 3.5; perspective: 900px; cursor: pointer;
   opacity: 0; transform: translateY(12px) scale(0.92);
   animation: memDeal .45s ease forwards;
 }
@@ -1000,6 +1000,22 @@ html.theme-light .ebay-card-img { background: #fff; }
   box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 40%, transparent);
 }
 @keyframes winPulse { 0%{transform:scale(0.86);opacity:0} 60%{transform:scale(1.03)} 100%{transform:scale(1);opacity:1} }
+.mem-card-back img.mem-art {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; object-position: center top;
+  border-radius: 10px; pointer-events: none;
+  background: #0b1220;
+}
+.mem-card-back .mem-set {
+  position: absolute; top: 5px; left: 0; right: 0;
+  font-size: 8px; font-weight: 700; color: rgba(255,255,255,.75);
+  text-align: center; letter-spacing: 0.06em; text-transform: uppercase;
+  text-shadow: 0 1px 3px rgba(0,0,0,.8); pointer-events: none; z-index: 2;
+}
+.mem-card-back.mem-fallback {
+  background: linear-gradient(160deg, #1a2333, #0d1424);
+  gap: 4px; padding: 8px;
+}
 .mem-card-back .mem-name {
   position: absolute; bottom: 6px; left: 0; right: 0;
   font-size: 10px; font-weight: 750; color: #fff; text-align: center;

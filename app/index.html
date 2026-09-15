@@ -1707,7 +1707,7 @@
         <article class="arcade-card" data-game="memory">
           <div class="ac-badge"><span class="ac-orb" style="color:#fbbf24;background:#fbbf24"></span> Puzzle</div>
           <h3>Memory Match</h3>
-          <p>Flip foil cards, chain combos, beat your best moves. Premium 3D flips — fully offline.</p>
+          <p>Match real Pokémon TCG card art. Flip foil backs, chain combos, beat your best moves.</p>
           <div class="ac-foot">
             <div class="ac-score">Best <b id="hs-memory">—</b></div>
             <button type="button" class="ac-play" onclick="loadGame('memory')">Play</button>
@@ -1738,6 +1738,15 @@
           <div class="ac-foot">
             <div class="ac-score">Best <b id="hs-megaman">—</b></div>
             <button type="button" class="ac-play" onclick="loadGame('megaman')">Play</button>
+          </div>
+        </article>
+        <article class="arcade-card" data-game="contra">
+          <div class="ac-badge"><span class="ac-orb" style="color:#ef4444;background:#ef4444"></span> Run &amp; Gun</div>
+          <h3>Contra</h3>
+          <p>Side-scroll shootout — run, jump, blast soldiers, grab spread power-ups. Homage mini-run.</p>
+          <div class="ac-foot">
+            <div class="ac-score">Best <b id="hs-contra">—</b></div>
+            <button type="button" class="ac-play" onclick="loadGame('contra')">Play</button>
           </div>
         </article>
       </div>
@@ -1778,7 +1787,7 @@
           <div style="font-size:22px;font-weight:750;color:var(--gold);font-variant-numeric:tabular-nums" id="game-time">0:00</div>
         </div>
       </div>
-      <div id="memory-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:440px;margin:0 auto 16px"></div>
+      <div id="memory-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:480px;margin:0 auto 16px"></div>
       <div id="game-combo" style="font-size:14px;min-height:24px;margin-bottom:12px;text-align:center"></div>
       <div style="text-align:center">
         <button type="button" class="game-ctrl-btn primary" onclick="initGame()">New Game</button>
@@ -1831,6 +1840,24 @@
         </div>
       </div>
       <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:4px">Move · JUMP · FIRE (hold charge) · SLIDE · P pause</div>
+    </div>
+
+    <!-- Contra -->
+    <div id="contra-wrap" class="game-canvas-wrap">
+      <canvas id="contra-c" width="800" height="400"></canvas>
+      <div id="contra-touch" class="touch-controls">
+        <div class="touch-dpad">
+          <div class="touch-btn up" data-touch="up">▲</div>
+          <div class="touch-btn left" data-touch="left">◀</div>
+          <div class="touch-btn right" data-touch="right">▶</div>
+          <div class="touch-btn down" data-touch="down">▼</div>
+        </div>
+        <div class="touch-actions">
+          <div class="touch-btn jump" data-touch="jump">JUMP</div>
+          <div class="touch-btn fire" data-touch="fire">FIRE</div>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:4px">Arrows/WASD · Z/Space JUMP · X FIRE · P pause</div>
     </div>
   </div>
 </div>
