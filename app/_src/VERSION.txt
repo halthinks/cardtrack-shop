@@ -1,3 +1,9 @@
-1c513576f37c
-builtAt: 2026-09-15T09:29:35Z
-arcade: pacman megaman contra rebuilt; memory/invaders untouched
+{
+  "version": "1c513576f37c",
+  "builtAt": "2026-09-15T09:29:35Z",
+  "bytes": {
+    "css": 165145,
+    "js": 533468,
+    "html": 124187
+  }
+}
